@@ -1,0 +1,52 @@
+{
+	"geode": "4.7.0",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
+	},
+	"id": "kxtbit.high_precision_editor",
+	"name": "High Precision Editor",
+	"version": "v0.1.0",
+	"developer": "kxtbit",
+	"description": "Changes the GD editor logic to save certain values at full precision",
+	"settings": {
+		"full-precision-object-position": {
+			"name": "Full Precision Object Position",
+			"description": "Overrides the default saving logic for object positions and save at full precision instead of 1 decimal place",
+			"type": "bool",
+			"default": true
+		},
+		"full-precision-object-rotation": {
+			"name": "Full Precision Object Rotation",
+			"description": "Overrides the default saving logic for object rotations and save at full precision instead of truncating; also applies to warp transforms",
+			"type": "bool",
+			"default": true
+		},
+		"full-precision-object-scale": {
+			"name": "Full Precision Object Scale",
+			"description": "Overrides the default saving logic for object scale and save at full precision instead of truncating; applies to both X and Y scales",
+			"type": "bool",
+			"default": true
+		},
+		"full-precision-trigger-parameters": {
+			"name": "Full Precision Trigger Parameters",
+			"description": "Overrides the default saving logic for trigger parameters and save at full precision instead of truncating; applies to most triggers",
+			"type": "bool",
+			"default": true
+		},
+		"allow-decimal-move-parameters": {
+			"name": "Allow Decimal Move Parameters",
+			"description": "Allows you to enter decimals into the X and Y move amounts in move triggers and camera offset triggers, which is fully functional despite being impossible in an unmodded game",
+			"type": "bool",
+			"default": true
+		},
+		"enable-slider-inputs": {
+			"name": "Enable Slider Inputs",
+			"description": "Adds text inputs to some trigger properties, like the opacity of color and alpha triggers",
+			"type": "bool",
+			"default": true
+		}
+	}
+}
