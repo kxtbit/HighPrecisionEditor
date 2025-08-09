@@ -48,5 +48,8 @@
 			"type": "bool",
 			"default": true
 		}
+	},
+	"links": {
+		"source": "https://github.com/kxtbit/HighPrecisionEditor"
 	}
 }

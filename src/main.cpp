@@ -72,26 +72,26 @@ class $modify(PrecisionGameObject, GameObject) {
 			switch (key) {
 				case 2:
 					if (!precisionPosition) return orig;
-					return fmt::format("{}", m_positionX);
+					return gd::string(gd::string(fmt::format("{}", m_positionX)));
 				case 3:
 					if (!precisionPosition) return orig;
-					return fmt::format("{}", m_positionY - 90);
+					return gd::string(gd::string(fmt::format("{}", m_positionY - 90)));
 				case 32:
 					if (!precisionScale) return orig;
-					return fmt::format("{}", std::max(m_scaleX, m_scaleY));
+					return gd::string(gd::string(fmt::format("{}", std::max(m_scaleX, m_scaleY))));
 				case 6:
 				case 131:
 					if (!precisionRotation) return orig;
-					return fmt::format("{}", m_fRotationX);
+					return gd::string(gd::string(fmt::format("{}", m_fRotationX)));
 				case 132:
 					if (!precisionRotation) return orig;
-					return fmt::format("{}", m_fRotationY);
+					return gd::string(gd::string(fmt::format("{}", m_fRotationY)));
 				case 128:
 					if (!precisionScale) return orig;
-					return fmt::format("{}", m_scaleX);
+					return gd::string(gd::string(fmt::format("{}", m_scaleX)));
 				case 129:
 					if (!precisionScale) return orig;
-					return fmt::format("{}", m_scaleY);
+					return gd::string(gd::string(fmt::format("{}", m_scaleY)));
 
 				default:
 					return orig;
@@ -109,73 +109,73 @@ class $modify(PrecisionEffectObject, EffectGameObject) {
 			switch (key) {
 					//trigger common
 				case 10: //also used as random trigger chance
-					return fmt::format("{}", m_duration);
+					return gd::string(fmt::format("{}", m_duration));
 				case 85:
-					return fmt::format("{}", m_easingRate);
+					return gd::string(fmt::format("{}", m_easingRate));
 
 					//move trigger
 				case 28: //also used by camera offset and guide triggers
-					return fmt::format("{}", m_moveOffset.x);
+					return gd::string(fmt::format("{}", m_moveOffset.x));
 				case 29: //also used by camera offset and guide triggers
-					return fmt::format("{}", m_moveOffset.y);
+					return gd::string(fmt::format("{}", m_moveOffset.y));
 				case 143:
-					return fmt::format("{}", m_moveModX);
+					return gd::string(fmt::format("{}", m_moveModX));
 				case 144:
-					return fmt::format("{}", m_moveModY);
+					return gd::string(fmt::format("{}", m_moveModY));
 
 					//rotate trigger
 				case 68: //also used by camera rotate trigger
-					return fmt::format("{}", m_rotationDegrees);
+					return gd::string(fmt::format("{}", m_rotationDegrees));
 				case 402:
-					return fmt::format("{}", m_rotationOffset);
+					return gd::string(fmt::format("{}", m_rotationOffset));
 
 					//pulse trigger
 				case 45:
-					return fmt::format("{}", m_fadeInDuration);
+					return gd::string(fmt::format("{}", m_fadeInDuration));
 				case 46:
-					return fmt::format("{}", m_holdDuration);
+					return gd::string(fmt::format("{}", m_holdDuration));
 				case 47:
-					return fmt::format("{}", m_fadeOutDuration);
+					return gd::string(fmt::format("{}", m_fadeOutDuration));
 
 					//alpha trigger
 				case 35:
-					return fmt::format("{}", m_opacity);
+					return gd::string(fmt::format("{}", m_opacity));
 
 					//shake trigger
 				case 75:
-					return fmt::format("{}", m_shakeStrength);
+					return gd::string(fmt::format("{}", m_shakeStrength));
 				case 84:
-					return fmt::format("{}", m_shakeInterval);
+					return gd::string(fmt::format("{}", m_shakeInterval));
 
 					//follow trigger
 				case 72:
-					return fmt::format("{}", m_followXMod);
+					return gd::string(fmt::format("{}", m_followXMod));
 				case 73:
-					return fmt::format("{}", m_followYMod);
+					return gd::string(fmt::format("{}", m_followYMod));
 
 					//follow player y trigger
 				case 90:
-					return fmt::format("{}", m_followYSpeed);
+					return gd::string(fmt::format("{}", m_followYSpeed));
 				case 91:
-					return fmt::format("{}", m_followYDelay);
+					return gd::string(fmt::format("{}", m_followYDelay));
 				case 105:
-					return fmt::format("{}", m_followYMaxSpeed);
+					return gd::string(fmt::format("{}", m_followYMaxSpeed));
 
 					//camera zoom trigger
 				case 371: //also used by camera guide
-					return fmt::format("{}", m_zoomValue);
+					return gd::string(fmt::format("{}", m_zoomValue));
 
 					//camera mode trigger
 				case 114:
-					return fmt::format("{}", m_cameraPaddingValue);
+					return gd::string(fmt::format("{}", m_cameraPaddingValue));
 
 					//timewarp trigger
 				case 120:
-					return fmt::format("{}", m_timeWarpTimeMod);
+					return gd::string(fmt::format("{}", m_timeWarpTimeMod));
 
 					//gravity trigger
 				case 148:
-					return fmt::format("{}", m_gravityValue);
+					return gd::string(fmt::format("{}", m_gravityValue));
 
 				default:
 					return orig;
@@ -193,9 +193,9 @@ class $modify(PrecisionTransformTrigger, TransformTriggerGameObject) {
 			switch (key) {
 					//scale trigger
 				case 150:
-					return fmt::format("{}", m_objectScaleX);
+					return gd::string(fmt::format("{}", m_objectScaleX));
 				case 151:
-					return fmt::format("{}", m_objectScaleY);
+					return gd::string(fmt::format("{}", m_objectScaleY));
 
 				default:
 					return orig;
@@ -212,17 +212,17 @@ class $modify(PrecisionKeyframeAnimTrigger, KeyframeAnimTriggerObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 520:
-					return fmt::format("{}", m_timeMod);
+					return gd::string(fmt::format("{}", m_timeMod));
 				case 521:
-					return fmt::format("{}", m_positionXMod);
+					return gd::string(fmt::format("{}", m_positionXMod));
 				case 545:
-					return fmt::format("{}", m_positionYMod);
+					return gd::string(fmt::format("{}", m_positionYMod));
 				case 522:
-					return fmt::format("{}", m_rotationMod);
+					return gd::string(fmt::format("{}", m_rotationMod));
 				case 523:
-					return fmt::format("{}", m_scaleXMod);
+					return gd::string(fmt::format("{}", m_scaleXMod));
 				case 546:
-					return fmt::format("{}", m_scaleYMod);
+					return gd::string(fmt::format("{}", m_scaleYMod));
 
 				default:
 					return orig;
@@ -239,7 +239,7 @@ class $modify(PrecisionKeyframeGameObject, KeyframeGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 557:
-					return fmt::format("{}", m_spawnDelay);
+					return gd::string(fmt::format("{}", m_spawnDelay));
 
 				default:
 					return orig;
@@ -256,7 +256,7 @@ class $modify(PrecisionGradientTrigger, GradientTriggerObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 456:
-					return fmt::format("{}", m_previewOpacity);
+					return gd::string(fmt::format("{}", m_previewOpacity));
 
 				default:
 					return orig;
@@ -273,9 +273,9 @@ class $modify(PrecisionCameraTrigger, CameraTriggerGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 213:
-					return fmt::format("{}", m_followEasing);
+					return gd::string(fmt::format("{}", m_followEasing));
 				case 454:
-					return fmt::format("{}", m_velocityModifier);
+					return gd::string(fmt::format("{}", m_velocityModifier));
 
 				default:
 					return orig;
@@ -292,11 +292,11 @@ class $modify(PrecisionItemTrigger, ItemTriggerGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 479:
-					return fmt::format("{}", m_mod1);
+					return gd::string(fmt::format("{}", m_mod1));
 				case 483:
-					return fmt::format("{}", m_mod2);
+					return gd::string(fmt::format("{}", m_mod2));
 				case 484:
-					return fmt::format("{}", m_tolerance);
+					return gd::string(fmt::format("{}", m_tolerance));
 
 				default:
 					return orig;
@@ -313,17 +313,17 @@ class $modify(PrecisionSFXTrigger, SFXTriggerGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 406: //also used by song trigger
-					return fmt::format("{}", m_volume);
+					return gd::string(fmt::format("{}", m_volume));
 				case 421:
-					return fmt::format("{}", m_volumeNear);
+					return gd::string(fmt::format("{}", m_volumeNear));
 				case 422:
-					return fmt::format("{}", m_volumeMedium);
+					return gd::string(fmt::format("{}", m_volumeMedium));
 				case 423:
-					return fmt::format("{}", m_volumeFar);
+					return gd::string(fmt::format("{}", m_volumeFar));
 				case 434:
-					return fmt::format("{}", m_minInterval);
+					return gd::string(fmt::format("{}", m_minInterval));
 				case 490:
-					return fmt::format("{}", m_soundDuration);
+					return gd::string(fmt::format("{}", m_soundDuration));
 
 				default:
 					return orig;
@@ -340,11 +340,11 @@ class $modify(PrecisionTimerTrigger, TimerTriggerGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 467:
-					return fmt::format("{}", m_startTime);
+					return gd::string(fmt::format("{}", m_startTime));
 				case 473: //also used by time event trigger
-					return fmt::format("{}", m_targetTime);
+					return gd::string(fmt::format("{}", m_targetTime));
 				case 470:
-					return fmt::format("{}", m_timeMod);
+					return gd::string(fmt::format("{}", m_timeMod));
 
 				default:
 					return orig;
@@ -361,9 +361,9 @@ class $modify(PrecisionSpawnTrigger, SpawnTriggerGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 63:
-					return fmt::format("{}", m_spawnDelay);
+					return gd::string(fmt::format("{}", m_spawnDelay));
 				case 556:
-					return fmt::format("{}", m_delayRange);
+					return gd::string(fmt::format("{}", m_delayRange));
 
 				default:
 					return orig;
@@ -380,9 +380,9 @@ class $modify(PrecisionSequenceTrigger, SequenceTriggerGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 437:
-					return fmt::format("{}", m_minInt);
+					return gd::string(fmt::format("{}", m_minInt));
 				case 438:
-					return fmt::format("{}", m_reset);
+					return gd::string(fmt::format("{}", m_reset));
 
 				default:
 					return orig;
@@ -399,9 +399,9 @@ class $modify(PrecisionSpawnParticle, SpawnParticleGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 554:
-					return fmt::format("{}", m_scale);
+					return gd::string(fmt::format("{}", m_scale));
 				case 555:
-					return fmt::format("{}", m_scaleVariance);
+					return gd::string(fmt::format("{}", m_scaleVariance));
 
 				default:
 					return orig;
@@ -418,9 +418,9 @@ class $modify(PrecisionRotateGameplay, RotateGameplayGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 582:
-					return fmt::format("{}", m_velocityModX);
+					return gd::string(fmt::format("{}", m_velocityModX));
 				case 583:
-					return fmt::format("{}", m_velocityModY);
+					return gd::string(fmt::format("{}", m_velocityModY));
 
 				default:
 					return orig;
@@ -437,7 +437,7 @@ class $modify(PrecisionGameOptions, GameOptionsTrigger) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 574:
-					return fmt::format("{}", m_respawnTime);
+					return gd::string(fmt::format("{}", m_respawnTime));
 
 				default:
 					return orig;
@@ -454,11 +454,11 @@ class $modify(PrecisionTeleportPortal, TeleportPortalObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 348:
-					return fmt::format("{}", m_redirectForceMin);
+					return gd::string(fmt::format("{}", m_redirectForceMin));
 				case 349:
-					return fmt::format("{}", m_redirectForceMax);
+					return gd::string(fmt::format("{}", m_redirectForceMax));
 				case 350:
-					return fmt::format("{}", m_redirectForceMod);
+					return gd::string(fmt::format("{}", m_redirectForceMod));
 
 				default:
 					return orig;
@@ -475,31 +475,31 @@ class $modify(PrecisionShaderGameObject, ShaderGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 175:
-					return fmt::format("{}", m_speed);
+					return gd::string(fmt::format("{}", m_speed));
 				case 176:
-					return fmt::format("{}", m_strength);
+					return gd::string(fmt::format("{}", m_strength));
 				case 179:
-					return fmt::format("{}", m_waveWidth);
+					return gd::string(fmt::format("{}", m_waveWidth));
 				case 180:
-					return fmt::format("{}", m_targetX);
+					return gd::string(fmt::format("{}", m_targetX));
 				case 189:
-					return fmt::format("{}", m_targetY);
+					return gd::string(fmt::format("{}", m_targetY));
 				case 181:
-					return fmt::format("{}", m_fadeIn);
+					return gd::string(fmt::format("{}", m_fadeIn));
 				case 182:
-					return fmt::format("{}", m_fadeOut);
+					return gd::string(fmt::format("{}", m_fadeOut));
 				case 177:
-					return fmt::format("{}", m_timeOff);
+					return gd::string(fmt::format("{}", m_timeOff));
 				case 512:
-					return fmt::format("{}", m_maxSize);
+					return gd::string(fmt::format("{}", m_maxSize));
 				case 290:
-					return fmt::format("{}", m_screenOffsetX);
+					return gd::string(fmt::format("{}", m_screenOffsetX));
 				case 291:
-					return fmt::format("{}", m_screenOffsetY);
+					return gd::string(fmt::format("{}", m_screenOffsetY));
 				case 183:
-					return fmt::format("{}", m_inner);
+					return gd::string(fmt::format("{}", m_inner));
 				case 191:
-					return fmt::format("{}", m_outer);
+					return gd::string(fmt::format("{}", m_outer));
 
 				default:
 					return orig;
@@ -516,11 +516,11 @@ class $modify(PrecisionForceBlock, ForceBlockGameObject) {
 		return patchSaveString(save, [this](const int key, gd::string orig) {
 			switch (key) {
 				case 149:
-					return fmt::format("{}", m_force);
+					return gd::string(fmt::format("{}", m_force));
 				case 526:
-					return fmt::format("{}", m_minForce);
+					return gd::string(fmt::format("{}", m_minForce));
 				case 527:
-					return fmt::format("{}", m_maxForce);
+					return gd::string(fmt::format("{}", m_maxForce));
 
 				default:
 					return orig;
@@ -546,7 +546,7 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 			//log::info("skipped input node due to null text field");
 			return;
 		}
-		const gd::string newStr = fmt::format("{}", value);
+		const gd::string newStr = gd::string(fmt::format("{}", value));
 		const gd::string oldStr = inputNode->getString();
 		//log::info("update input node {} -> {}", oldStr, newStr);
 		if (std::stof(oldStr) != value || newStr.size() < oldStr.size()) {
@@ -680,11 +680,11 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 		}
 
 		if (m_offsetX != -99999 && m_offsetXInput != nullptr)
-			m_offsetXInput->setString(fmt::format("{}", object->m_moveOffset.x / 3.0f));
+			m_offsetXInput->setString(gd::string(fmt::format("{}", object->m_moveOffset.x / 3.0f)));
 		if (m_offsetY != -99999 && m_offsetYInput != nullptr)
-			m_offsetYInput->setString(fmt::format("{}", object->m_moveOffset.y / 3.0f));
+			m_offsetYInput->setString(gd::string(fmt::format("{}", object->m_moveOffset.y / 3.0f)));
 		if (m_moveTimeInput != nullptr)
-			m_moveTimeInput->setString(fmt::format("{}", m_moveTime));
+			m_moveTimeInput->setString(gd::string(fmt::format("{}", m_moveTime)));
 		return true;
 	}
 
@@ -743,11 +743,11 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 		if (!precisionParams) return true;
 
 		if (m_xModInput != nullptr)
-			m_xModInput->setString(fmt::format("{}", m_xMod));
+			m_xModInput->setString(gd::string(fmt::format("{}", m_xMod)));
 		if (m_yModInput != nullptr)
-			m_yModInput->setString(fmt::format("{}", m_yMod));
+			m_yModInput->setString(gd::string(fmt::format("{}", m_yMod)));
 		if (m_moveTimeInput != nullptr)
-			m_moveTimeInput->setString(fmt::format("{}", m_moveTime));
+			m_moveTimeInput->setString(gd::string(fmt::format("{}", m_moveTime)));
 		return true;
 	}
 
@@ -825,7 +825,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		if (!ColorSelectPopup::init(p0, p1, p2)) return false;
 
 		if (precisionParams && m_fadeTimeInput != nullptr)
-			m_fadeTimeInput->setString(fmt::format("{}", m_fadeTime));
+			m_fadeTimeInput->setString(gd::string(fmt::format("{}", m_fadeTime)));
 
 		if (!sliderInputs) return true;
 
@@ -847,7 +847,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		m_fields->opacityField = TextInput::create(40, "");
 		m_fields->opacityField->setID("hpe-opacity-field");
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
 		m_fields->opacityField->setCallback([this](const gd::string& str) {
 			try {
 				m_opacity = std::stof(str);
@@ -865,7 +865,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		if (!precisionParams) return ColorSelectPopup::updateOpacityLabel();
 
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
 	}
 
 	void textChanged(CCTextInputNode* inputNode) override {
@@ -892,11 +892,11 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 		if (!precisionParams) return true;
 
 		if (m_fadeInInput != nullptr)
-			m_fadeInInput->setString(fmt::format("{}", m_fadeInTime));
+			m_fadeInInput->setString(gd::string(fmt::format("{}", m_fadeInTime)));
 		if (m_holdInput != nullptr)
-			m_holdInput->setString(fmt::format("{}", m_holdTime));
+			m_holdInput->setString(gd::string(fmt::format("{}", m_holdTime)));
 		if (m_fadeOutInput != nullptr)
-			m_fadeOutInput->setString(fmt::format("{}", m_fadeOutTime));
+			m_fadeOutInput->setString(gd::string(fmt::format("{}", m_fadeOutTime)));
 
 		return true;
 	}
@@ -957,7 +957,7 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		if (!SetupOpacityPopup::init(p0, p1)) return false;
 
 		if (precisionParams && m_fadeTimeInput != nullptr)
-			m_fadeTimeInput->setString(fmt::format("{}", m_fadeTime));
+			m_fadeTimeInput->setString(gd::string(fmt::format("{}", m_fadeTime)));
 
 		if (!sliderInputs) return true;
 
@@ -975,9 +975,9 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		m_fields->opacityField->setPosition(m_fadeTimeInput->getPositionX(), m_opacityLabel->getPositionY());
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
 		if (precisionParams)
-			m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+			m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
 		else
-			m_fields->opacityField->setString(fmt::format("{:.2f}", m_fadeTime));
+			m_fields->opacityField->setString(gd::string(fmt::format("{:.2f}", m_fadeTime)));
 		m_fields->opacityField->setCallback([this](const gd::string& str) {
 			try {
 				m_opacity = std::stof(str);
@@ -995,7 +995,7 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 	void updateOpacityLabel() {
 		if (!precisionParams) return SetupOpacityPopup::updateOpacityLabel();
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
 	}
 
 	void textChanged(CCTextInputNode* inputNode) override {
