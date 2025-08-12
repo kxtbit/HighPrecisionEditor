@@ -6,6 +6,7 @@ using namespace geode::prelude;
 gd::string patchSaveString(gd::string save, auto patcher) {
 	size_t pos = 0;
 	std::stringstream out;
+	char c;
 	bool first = true;
 	while (pos < save.size()) {
 		if (first) {
@@ -13,13 +14,23 @@ gd::string patchSaveString(gd::string save, auto patcher) {
 		} else {
 			out << ',';
 		}
-		size_t count = 0;
-		const int key = std::stoi(gd::string(save.data() + pos, save.size() - pos), &count);
-		pos += count + 1;
+		size_t key_start = pos;
+		do {
+			c = save[pos++];
+		} while (c != ',');
+
+		gd::string keyStr = gd::string(
+			save.data() + key_start,
+			std::min(pos - key_start - 1, save.size() - key_start));
+		auto keyResult = utils::numFromString<int>(keyStr);
+		if (!keyResult.isOk()) {
+			log::warn("Failed to parse object string key {}, will abort processing of this save string", keyStr);
+			return save;
+		}
+		const int key = keyResult.unwrap();
 		out << key << ',';
 
 		size_t val_start = pos;
-		char c;
 		do {
 			c = save[pos++];
 		} while (c != ',');
@@ -548,8 +559,9 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 		}
 		const gd::string newStr = gd::string(fmt::format("{}", value));
 		const gd::string oldStr = inputNode->getString();
+		auto oldResult = utils::numFromString<float>(oldStr);
 		//log::info("update input node {} -> {}", oldStr, newStr);
-		if (std::stof(oldStr) != value || newStr.size() < oldStr.size()) {
+		if (!oldResult.isOk() || oldResult.unwrap() != value || newStr.size() < oldStr.size()) {
 			inputNode->setString(newStr);
 		}
 	}
@@ -693,9 +705,7 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 		if (m_disableTextDelegate) return;
 
 		gd::string str = inputNode->getString();
-		//ideally we would use something more robust like strtof or stof instead,
-		//but this is what the original code does and we are just trying to replicate that
-		float value = (float) std::atof(str.c_str());
+		float value = utils::numFromString<float>(str).unwrapOr(0);
 
 		int type = inputNode->getTag();
 		float sliderValue;
@@ -762,7 +772,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 		Slider* slider = nullptr;
 		switch (type) {
 			case 0: { //X modifier
-				float value = (float) std::atof(str.c_str());
+				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_xMod = value;
 				updateXMod();
 				sliderValue = std::clamp(float(value / 2.0 + 0.5), 0.0f, 1.0f);
@@ -770,7 +780,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 				break;
 			}
 			case 1: { //Y modifier
-				float value = (float) std::atof(str.c_str());
+				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_yMod = value;
 				updateYMod();
 				sliderValue = std::clamp(float(value / 2.0 + 0.5), 0.0f, 1.0f);
@@ -778,7 +788,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 				break;
 			}
 			case 2: { //target group
-				int value = std::atoi(str.c_str());
+				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_targetGroupID = std::max(0, value);
 				updateTargetGroupID();
 				updateTriggers(this, [](EffectGameObject* object) {
@@ -787,13 +797,13 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 				break;
 			}
 			case 4: { //follow group
-				int value = std::atoi(str.c_str());
+				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_followGroupID = std::max(0, value);
 				updateTargetGroupID();
 				break;
 			}
 			default: { //duration (3)
-				float value = (float) std::atof(str.c_str());
+				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_moveTime = value;
 				updateTriggers(this, [value](EffectGameObject* object) {
 					object->m_duration = value;
@@ -849,11 +859,10 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
 		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
 		m_fields->opacityField->setCallback([this](const gd::string& str) {
-			try {
-				m_opacity = std::stof(str);
-				updateOpacity();
-			} catch (std::invalid_argument&) {}
-			  catch (std::out_of_range&) {}
+			auto result = utils::numFromString<float>(str);
+			if (!result.isOk()) return;
+			m_opacity = result.unwrap();
+			updateOpacity();
 		});
 		m_fields->opacityMenu->addChild(m_fields->opacityField);
 
@@ -876,7 +885,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 
 		int type = inputNode->getTag();
 		if (type == 5) { //fade time
-			float value = (float) std::atof(inputNode->getString().c_str());
+			float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 			m_fadeTime = value;
 			updateTriggers(this, [value](EffectGameObject* object) {
 				object->m_duration = value;
@@ -910,7 +919,7 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 		int type = inputNode->getTag();
 		switch (type) {
 			case 8: { //fade in time
-				float value = (float) std::atof(inputNode->getString().c_str());
+				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_fadeInTime = value;
 				updateTriggers(this, [value](EffectGameObject* object) {
 					object->m_fadeInDuration = value;
@@ -918,7 +927,7 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 				m_fadeInSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
 			}
 			case 9: { //hold time
-				float value = (float) std::atof(inputNode->getString().c_str());
+				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_holdTime = value;
 				updateTriggers(this, [value](EffectGameObject* object) {
 					object->m_holdDuration = value;
@@ -926,7 +935,7 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 				m_holdSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
 			}
 			case 10: { //fade out time
-				float value = (float) std::atof(inputNode->getString().c_str());
+				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_fadeOutTime = value;
 				updateTriggers(this, [value](EffectGameObject* object) {
 					object->m_fadeOutDuration = value;
@@ -979,14 +988,13 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		else
 			m_fields->opacityField->setString(gd::string(fmt::format("{:.2f}", m_fadeTime)));
 		m_fields->opacityField->setCallback([this](const gd::string& str) {
-			try {
-				m_opacity = std::stof(str);
-				updateTriggers(this, [str, this](EffectGameObject* object) {
-					object->m_opacity = m_opacity;
-				});
-				m_opacitySlider->setValue(std::clamp(m_opacity, 0.0f, 1.0f));
-			} catch (std::invalid_argument&) {}
-			  catch (std::out_of_range&) {}
+			auto result = utils::numFromString<float>(str);
+			if (!result.isOk()) return;
+			m_opacity = result.unwrap();
+			updateTriggers(this, [str, this](EffectGameObject* object) {
+				object->m_opacity = m_opacity;
+			});
+			m_opacitySlider->setValue(std::clamp(m_opacity, 0.0f, 1.0f));
 		});
 		m_mainLayer->addChild(m_fields->opacityField);
 
@@ -1006,13 +1014,13 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 
 		int type = inputNode->getTag();
 		if (type == 3) { //target group ID
-			m_groupID = std::atoi(str.c_str());
+			m_groupID = utils::numFromString<int>(str).unwrapOr(0);
 			updateTargetID();
 			updateTriggers(this, [](EffectGameObject* object) {
 				LevelEditorLayer::updateObjectLabel(object);
 			});
 		} else { //fade time
-			m_fadeTime = (float) std::atof(str.c_str());
+			m_fadeTime = utils::numFromString<float>(str).unwrapOr(0);
 			updateDuration();
 			m_fadeTimeSlider->setValue(float(m_fadeTime / 10.0));
 		}
@@ -1035,7 +1043,7 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 		int type = inputNode->getTag();
 		switch (type) {
 			case 3: { //target id 1
-				int value = std::atoi(str.c_str());
+				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_groupID1 = value;
 				updateTargetID();
 				updateTriggers(this, [](EffectGameObject* object) {
@@ -1043,7 +1051,7 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 				});
 			}
 			case 5: { //target id 2
-				int value = std::atoi(str.c_str());
+				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_groupID2 = value;
 				updateTargetID2();
 				updateTriggers(this, [](EffectGameObject* object) {
@@ -1051,7 +1059,7 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 				});
 			}
 			case 4: { //chance
-				float value = (float) std::atof(str.c_str());
+				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_chancePercent = value;
 				updateTriggers(this, [value, this](EffectGameObject* object) {
 					object->m_duration = value;
