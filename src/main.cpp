@@ -799,7 +799,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 			case 4: { //follow group
 				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_followGroupID = std::max(0, value);
-				updateTargetGroupID();
+				updateTargetGroupID2();
 				break;
 			}
 			default: { //duration (3)
