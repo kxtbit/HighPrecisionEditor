@@ -1,3 +1,6 @@
+# 0.1.6
+- Fixed a bug that caused levels to be corrupted when saving (this is why you should keep backups)
+
 # 0.1.5
 - Fixed an out-of-bounds read
 - Cross-platform support, courtesy of hiimjasmine00

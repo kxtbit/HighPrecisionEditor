@@ -17,7 +17,11 @@ std::string patchSaveString(std::string save, CCObject* self, std::string (*patc
 		size_t key_start = pos;
 		do {
 			c = save[pos++];
-		} while (c != ',' && pos < save.size());
+			if (pos >= save.size()) {
+				log::warn("Object string ended prematurely, will abort processing of this save string");
+				return save;
+			}
+		} while (c != ',');
 
 		std::string keyStr = std::string(
 			save.data() + key_start,
@@ -33,7 +37,11 @@ std::string patchSaveString(std::string save, CCObject* self, std::string (*patc
 		size_t val_start = pos;
 		do {
 			c = save[pos++];
-		} while (c != ',' && pos < save.size());
+			if (pos >= save.size()) {
+				pos++;
+				break;
+			}
+		} while (c != ',');
 
 		out << patcher(self, key, std::string(save.data() + val_start, std::min(pos - val_start - 1, save.size() - val_start)));
 	}
