@@ -1,5 +1,6 @@
 # 0.1.5
 - Fixed an out-of-bounds read
+- Cross-platform support, courtesy of hiimjasmine00
 
 # 0.1.4
 - Internal code refactoring
