@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-gd::string patchSaveString(gd::string save, CCObject* self, gd::string (*patcher)(CCObject*, const int, gd::string)) {
+std::string patchSaveString(std::string save, CCObject* self, std::string (*patcher)(CCObject*, const int, std::string)) {
 	size_t pos = 0;
 	std::stringstream out;
 	char c;
@@ -19,7 +19,7 @@ gd::string patchSaveString(gd::string save, CCObject* self, gd::string (*patcher
 			c = save[pos++];
 		} while (c != ',' && pos < save.size());
 
-		gd::string keyStr = gd::string(
+		std::string keyStr = std::string(
 			save.data() + key_start,
 			std::min(pos - key_start - 1, save.size() - key_start));
 		auto keyResult = utils::numFromString<int>(keyStr);
@@ -35,7 +35,7 @@ gd::string patchSaveString(gd::string save, CCObject* self, gd::string (*patcher
 			c = save[pos++];
 		} while (c != ',' && pos < save.size());
 
-		out << patcher(self, key, gd::string(save.data() + val_start, std::min(pos - val_start - 1, save.size() - val_start)));
+		out << patcher(self, key, std::string(save.data() + val_start, std::min(pos - val_start - 1, save.size() - val_start)));
 	}
 
 	return out.str();
@@ -79,31 +79,31 @@ $execute {
 class $modify(PrecisionGameObject, GameObject) {
 	gd::string getSaveString(GJBaseGameLayer* layer) override {
 		gd::string save = GameObject::getSaveString(layer);
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionGameObject*) rawSelf;
 			switch (key) {
 				case 2:
 					if (!precisionPosition) return orig;
-					return gd::string(gd::string(fmt::format("{}", self->m_positionX)));
+					return fmt::format("{}", self->m_positionX);
 				case 3:
 					if (!precisionPosition) return orig;
-					return gd::string(gd::string(fmt::format("{}", self->m_positionY - 90)));
+					return fmt::format("{}", self->m_positionY - 90);
 				case 32:
 					if (!precisionScale) return orig;
-					return gd::string(gd::string(fmt::format("{}", std::max(self->m_scaleX, self->m_scaleY))));
+					return fmt::format("{}", std::max(self->m_scaleX, self->m_scaleY));
 				case 6:
 				case 131:
 					if (!precisionRotation) return orig;
-					return gd::string(gd::string(fmt::format("{}", self->m_fRotationX)));
+					return fmt::format("{}", self->m_fRotationX);
 				case 132:
 					if (!precisionRotation) return orig;
-					return gd::string(gd::string(fmt::format("{}", self->m_fRotationY)));
+					return fmt::format("{}", self->m_fRotationY);
 				case 128:
 					if (!precisionScale) return orig;
-					return gd::string(gd::string(fmt::format("{}", self->m_scaleX)));
+					return fmt::format("{}", self->m_scaleX);
 				case 129:
 					if (!precisionScale) return orig;
-					return gd::string(gd::string(fmt::format("{}", self->m_scaleY)));
+					return fmt::format("{}", self->m_scaleY);
 
 				default:
 					return orig;
@@ -117,78 +117,78 @@ class $modify(PrecisionEffectObject, EffectGameObject) {
 		gd::string save = EffectGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionEffectObject*) rawSelf;
 			switch (key) {
 					//trigger common
 				case 10: //also used as random trigger chance
-					return gd::string(fmt::format("{}", self->m_duration));
+					return fmt::format("{}", self->m_duration);
 				case 85:
-					return gd::string(fmt::format("{}", self->m_easingRate));
+					return fmt::format("{}", self->m_easingRate);
 
 					//move trigger
 				case 28: //also used by camera offset and guide triggers
-					return gd::string(fmt::format("{}", self->m_moveOffset.x));
+					return fmt::format("{}", self->m_moveOffset.x);
 				case 29: //also used by camera offset and guide triggers
-					return gd::string(fmt::format("{}", self->m_moveOffset.y));
+					return fmt::format("{}", self->m_moveOffset.y);
 				case 143:
-					return gd::string(fmt::format("{}", self->m_moveModX));
+					return fmt::format("{}", self->m_moveModX);
 				case 144:
-					return gd::string(fmt::format("{}", self->m_moveModY));
+					return fmt::format("{}", self->m_moveModY);
 
 					//rotate trigger
 				case 68: //also used by camera rotate trigger
-					return gd::string(fmt::format("{}", self->m_rotationDegrees));
+					return fmt::format("{}", self->m_rotationDegrees);
 				case 402:
-					return gd::string(fmt::format("{}", self->m_rotationOffset));
+					return fmt::format("{}", self->m_rotationOffset);
 
 					//pulse trigger
 				case 45:
-					return gd::string(fmt::format("{}", self->m_fadeInDuration));
+					return fmt::format("{}", self->m_fadeInDuration);
 				case 46:
-					return gd::string(fmt::format("{}", self->m_holdDuration));
+					return fmt::format("{}", self->m_holdDuration);
 				case 47:
-					return gd::string(fmt::format("{}", self->m_fadeOutDuration));
+					return fmt::format("{}", self->m_fadeOutDuration);
 
 					//alpha trigger
 				case 35:
-					return gd::string(fmt::format("{}", self->m_opacity));
+					return fmt::format("{}", self->m_opacity);
 
 					//shake trigger
 				case 75:
-					return gd::string(fmt::format("{}", self->m_shakeStrength));
+					return fmt::format("{}", self->m_shakeStrength);
 				case 84:
-					return gd::string(fmt::format("{}", self->m_shakeInterval));
+					return fmt::format("{}", self->m_shakeInterval);
 
 					//follow trigger
 				case 72:
-					return gd::string(fmt::format("{}", self->m_followXMod));
+					return fmt::format("{}", self->m_followXMod);
 				case 73:
-					return gd::string(fmt::format("{}", self->m_followYMod));
+					return fmt::format("{}", self->m_followYMod);
 
 					//follow player y trigger
 				case 90:
-					return gd::string(fmt::format("{}", self->m_followYSpeed));
+					return fmt::format("{}", self->m_followYSpeed);
 				case 91:
-					return gd::string(fmt::format("{}", self->m_followYDelay));
+					return fmt::format("{}", self->m_followYDelay);
 				case 105:
-					return gd::string(fmt::format("{}", self->m_followYMaxSpeed));
+					return fmt::format("{}", self->m_followYMaxSpeed);
 
 					//camera zoom trigger
 				case 371: //also used by camera guide
-					return gd::string(fmt::format("{}", self->m_zoomValue));
+					return fmt::format("{}", self->m_zoomValue);
 
 					//camera mode trigger
 				case 114:
-					return gd::string(fmt::format("{}", self->m_cameraPaddingValue));
+					return fmt::format("{}", self->m_cameraPaddingValue);
 
 					//timewarp trigger
 				case 120:
-					return gd::string(fmt::format("{}", self->m_timeWarpTimeMod));
+					return fmt::format("{}", self->m_timeWarpTimeMod);
 
 					//gravity trigger
 				case 148:
-					return gd::string(fmt::format("{}", self->m_gravityValue));
+					return fmt::format("{}", self->m_gravityValue);
 
 				default:
 					return orig;
@@ -202,14 +202,14 @@ class $modify(PrecisionTransformTrigger, TransformTriggerGameObject) {
 		gd::string save = TransformTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionTransformTrigger*) rawSelf;
 			switch (key) {
 					//scale trigger
 				case 150:
-					return gd::string(fmt::format("{}", self->m_objectScaleX));
+					return fmt::format("{}", self->m_objectScaleX);
 				case 151:
-					return gd::string(fmt::format("{}", self->m_objectScaleY));
+					return fmt::format("{}", self->m_objectScaleY);
 
 				default:
 					return orig;
@@ -223,21 +223,21 @@ class $modify(PrecisionKeyframeAnimTrigger, KeyframeAnimTriggerObject) {
 		gd::string save = KeyframeAnimTriggerObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionKeyframeAnimTrigger*) rawSelf;
 			switch (key) {
 				case 520:
-					return gd::string(fmt::format("{}", self->m_timeMod));
+					return fmt::format("{}", self->m_timeMod);
 				case 521:
-					return gd::string(fmt::format("{}", self->m_positionXMod));
+					return fmt::format("{}", self->m_positionXMod);
 				case 545:
-					return gd::string(fmt::format("{}", self->m_positionYMod));
+					return fmt::format("{}", self->m_positionYMod);
 				case 522:
-					return gd::string(fmt::format("{}", self->m_rotationMod));
+					return fmt::format("{}", self->m_rotationMod);
 				case 523:
-					return gd::string(fmt::format("{}", self->m_scaleXMod));
+					return fmt::format("{}", self->m_scaleXMod);
 				case 546:
-					return gd::string(fmt::format("{}", self->m_scaleYMod));
+					return fmt::format("{}", self->m_scaleYMod);
 
 				default:
 					return orig;
@@ -251,11 +251,11 @@ class $modify(PrecisionKeyframeGameObject, KeyframeGameObject) {
 		gd::string save = KeyframeGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionKeyframeGameObject*) rawSelf;
 			switch (key) {
 				case 557:
-					return gd::string(fmt::format("{}", self->m_spawnDelay));
+					return fmt::format("{}", self->m_spawnDelay);
 
 				default:
 					return orig;
@@ -269,11 +269,11 @@ class $modify(PrecisionGradientTrigger, GradientTriggerObject) {
 		gd::string save = GradientTriggerObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionGradientTrigger*) rawSelf;
 			switch (key) {
 				case 456:
-					return gd::string(fmt::format("{}", self->m_previewOpacity));
+					return fmt::format("{}", self->m_previewOpacity);
 
 				default:
 					return orig;
@@ -287,13 +287,13 @@ class $modify(PrecisionCameraTrigger, CameraTriggerGameObject) {
 		gd::string save = CameraTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionCameraTrigger*) rawSelf;
 			switch (key) {
 				case 213:
-					return gd::string(fmt::format("{}", self->m_followEasing));
+					return fmt::format("{}", self->m_followEasing);
 				case 454:
-					return gd::string(fmt::format("{}", self->m_velocityModifier));
+					return fmt::format("{}", self->m_velocityModifier);
 
 				default:
 					return orig;
@@ -307,15 +307,15 @@ class $modify(PrecisionItemTrigger, ItemTriggerGameObject) {
 		gd::string save = ItemTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionItemTrigger*) rawSelf;
 			switch (key) {
 				case 479:
-					return gd::string(fmt::format("{}", self->m_mod1));
+					return fmt::format("{}", self->m_mod1);
 				case 483:
-					return gd::string(fmt::format("{}", self->m_mod2));
+					return fmt::format("{}", self->m_mod2);
 				case 484:
-					return gd::string(fmt::format("{}", self->m_tolerance));
+					return fmt::format("{}", self->m_tolerance);
 
 				default:
 					return orig;
@@ -329,21 +329,21 @@ class $modify(PrecisionSFXTrigger, SFXTriggerGameObject) {
 		gd::string save = SFXTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionSFXTrigger*) rawSelf;
 			switch (key) {
 				case 406: //also used by song trigger
-					return gd::string(fmt::format("{}", self->m_volume));
+					return fmt::format("{}", self->m_volume);
 				case 421:
-					return gd::string(fmt::format("{}", self->m_volumeNear));
+					return fmt::format("{}", self->m_volumeNear);
 				case 422:
-					return gd::string(fmt::format("{}", self->m_volumeMedium));
+					return fmt::format("{}", self->m_volumeMedium);
 				case 423:
-					return gd::string(fmt::format("{}", self->m_volumeFar));
+					return fmt::format("{}", self->m_volumeFar);
 				case 434:
-					return gd::string(fmt::format("{}", self->m_minInterval));
+					return fmt::format("{}", self->m_minInterval);
 				case 490:
-					return gd::string(fmt::format("{}", self->m_soundDuration));
+					return fmt::format("{}", self->m_soundDuration);
 
 				default:
 					return orig;
@@ -357,15 +357,15 @@ class $modify(PrecisionTimerTrigger, TimerTriggerGameObject) {
 		gd::string save = TimerTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionTimerTrigger*) rawSelf;
 			switch (key) {
 				case 467:
-					return gd::string(fmt::format("{}", self->m_startTime));
+					return fmt::format("{}", self->m_startTime);
 				case 473: //also used by time event trigger
-					return gd::string(fmt::format("{}", self->m_targetTime));
+					return fmt::format("{}", self->m_targetTime);
 				case 470:
-					return gd::string(fmt::format("{}", self->m_timeMod));
+					return fmt::format("{}", self->m_timeMod);
 
 				default:
 					return orig;
@@ -379,13 +379,13 @@ class $modify(PrecisionSpawnTrigger, SpawnTriggerGameObject) {
 		gd::string save = SpawnTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionSpawnTrigger*) rawSelf;
 			switch (key) {
 				case 63:
-					return gd::string(fmt::format("{}", self->m_spawnDelay));
+					return fmt::format("{}", self->m_spawnDelay);
 				case 556:
-					return gd::string(fmt::format("{}", self->m_delayRange));
+					return fmt::format("{}", self->m_delayRange);
 
 				default:
 					return orig;
@@ -399,13 +399,13 @@ class $modify(PrecisionSequenceTrigger, SequenceTriggerGameObject) {
 		gd::string save = SequenceTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionSequenceTrigger*) rawSelf;
 			switch (key) {
 				case 437:
-					return gd::string(fmt::format("{}", self->m_minInt));
+					return fmt::format("{}", self->m_minInt);
 				case 438:
-					return gd::string(fmt::format("{}", self->m_reset));
+					return fmt::format("{}", self->m_reset);
 
 				default:
 					return orig;
@@ -419,13 +419,13 @@ class $modify(PrecisionSpawnParticle, SpawnParticleGameObject) {
 		gd::string save = SpawnParticleGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionSpawnParticle*) rawSelf;
 			switch (key) {
 				case 554:
-					return gd::string(fmt::format("{}", self->m_scale));
+					return fmt::format("{}", self->m_scale);
 				case 555:
-					return gd::string(fmt::format("{}", self->m_scaleVariance));
+					return fmt::format("{}", self->m_scaleVariance);
 
 				default:
 					return orig;
@@ -439,13 +439,13 @@ class $modify(PrecisionRotateGameplay, RotateGameplayGameObject) {
 		gd::string save = RotateGameplayGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionRotateGameplay*) rawSelf;
 			switch (key) {
 				case 582:
-					return gd::string(fmt::format("{}", self->m_velocityModX));
+					return fmt::format("{}", self->m_velocityModX);
 				case 583:
-					return gd::string(fmt::format("{}", self->m_velocityModY));
+					return fmt::format("{}", self->m_velocityModY);
 
 				default:
 					return orig;
@@ -459,11 +459,11 @@ class $modify(PrecisionGameOptions, GameOptionsTrigger) {
 		gd::string save = GameOptionsTrigger::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionGameOptions*) rawSelf;
 			switch (key) {
 				case 574:
-					return gd::string(fmt::format("{}", self->m_respawnTime));
+					return fmt::format("{}", self->m_respawnTime);
 
 				default:
 					return orig;
@@ -477,15 +477,15 @@ class $modify(PrecisionTeleportPortal, TeleportPortalObject) {
 		gd::string save = TeleportPortalObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionTeleportPortal*) rawSelf;
 			switch (key) {
 				case 348:
-					return gd::string(fmt::format("{}", self->m_redirectForceMin));
+					return fmt::format("{}", self->m_redirectForceMin);
 				case 349:
-					return gd::string(fmt::format("{}", self->m_redirectForceMax));
+					return fmt::format("{}", self->m_redirectForceMax);
 				case 350:
-					return gd::string(fmt::format("{}", self->m_redirectForceMod));
+					return fmt::format("{}", self->m_redirectForceMod);
 
 				default:
 					return orig;
@@ -499,35 +499,35 @@ class $modify(PrecisionShaderGameObject, ShaderGameObject) {
 		gd::string save = ShaderGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionShaderGameObject*) rawSelf;
 			switch (key) {
 				case 175:
-					return gd::string(fmt::format("{}", self->m_speed));
+					return fmt::format("{}", self->m_speed);
 				case 176:
-					return gd::string(fmt::format("{}", self->m_strength));
+					return fmt::format("{}", self->m_strength);
 				case 179:
-					return gd::string(fmt::format("{}", self->m_waveWidth));
+					return fmt::format("{}", self->m_waveWidth);
 				case 180:
-					return gd::string(fmt::format("{}", self->m_targetX));
+					return fmt::format("{}", self->m_targetX);
 				case 189:
-					return gd::string(fmt::format("{}", self->m_targetY));
+					return fmt::format("{}", self->m_targetY);
 				case 181:
-					return gd::string(fmt::format("{}", self->m_fadeIn));
+					return fmt::format("{}", self->m_fadeIn);
 				case 182:
-					return gd::string(fmt::format("{}", self->m_fadeOut));
+					return fmt::format("{}", self->m_fadeOut);
 				case 177:
-					return gd::string(fmt::format("{}", self->m_timeOff));
+					return fmt::format("{}", self->m_timeOff);
 				case 512:
-					return gd::string(fmt::format("{}", self->m_maxSize));
+					return fmt::format("{}", self->m_maxSize);
 				case 290:
-					return gd::string(fmt::format("{}", self->m_screenOffsetX));
+					return fmt::format("{}", self->m_screenOffsetX);
 				case 291:
-					return gd::string(fmt::format("{}", self->m_screenOffsetY));
+					return fmt::format("{}", self->m_screenOffsetY);
 				case 183:
-					return gd::string(fmt::format("{}", self->m_inner));
+					return fmt::format("{}", self->m_inner);
 				case 191:
-					return gd::string(fmt::format("{}", self->m_outer));
+					return fmt::format("{}", self->m_outer);
 
 				default:
 					return orig;
@@ -541,15 +541,15 @@ class $modify(PrecisionForceBlock, ForceBlockGameObject) {
 		gd::string save = ForceBlockGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
 			auto self = (PrecisionForceBlock*) rawSelf;
 			switch (key) {
 				case 149:
-					return gd::string(fmt::format("{}", self->m_force));
+					return fmt::format("{}", self->m_force);
 				case 526:
-					return gd::string(fmt::format("{}", self->m_minForce));
+					return fmt::format("{}", self->m_minForce);
 				case 527:
-					return gd::string(fmt::format("{}", self->m_maxForce));
+					return fmt::format("{}", self->m_maxForce);
 
 				default:
 					return orig;
@@ -561,9 +561,14 @@ class $modify(PrecisionForceBlock, ForceBlockGameObject) {
 #include <Geode/modify/SetupTriggerPopup.hpp>
 class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("SetupTriggerPopup::triggerSliderChanged", Priority::Early)) {
+		if (!self.setHookPriorityPost("SetupTriggerPopup::triggerSliderChanged", Priority::Late)) {
 			log::error("failed to set hook priority for SetupTriggerPopup::triggerSliderChanged");
 		}
+		#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
+		if (!self.setHookPriorityPost("SetupTriggerPopup::textChanged", Priority::Late)) {
+			log::error("failed to set hook priority for SetupTriggerPopup::textChanged");
+		}
+		#endif
 	}
 
 	void updateInputNode(int property, float value) override {
@@ -575,8 +580,8 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 			//log::info("skipped input node due to null text field");
 			return;
 		}
-		const gd::string newStr = gd::string(fmt::format("{}", value));
-		const gd::string oldStr = inputNode->getString();
+		const std::string newStr = fmt::format("{}", value);
+		const std::string oldStr = inputNode->getString();
 		auto oldResult = utils::numFromString<float>(oldStr);
 		//log::info("update input node {} -> {}", oldStr, newStr);
 		if (!oldResult.isOk() || oldResult.unwrap() != value || newStr.size() < oldStr.size()) {
@@ -640,6 +645,7 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 															 decimalPlaces,
 															 allowDisable);
 	}
+	#ifndef GEODE_IS_IOS
 	float getTruncatedValue(float value, int decimalPlaces) {
 		if (!precisionParams) return SetupTriggerPopup::getTruncatedValue(value, std::abs(decimalPlaces));
 
@@ -649,6 +655,23 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 		}
 		return SetupTriggerPopup::getTruncatedValue(value, std::abs(decimalPlaces));
 	}
+	#endif
+
+	#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
+	void textChanged(CCTextInputNode* inputNode) override {
+		if (!precisionParams) return SetupTriggerPopup::textChanged(inputNode);
+
+		if (m_disableTextDelegate) return;
+
+		int property = inputNode->getTag();
+		std::string str = inputNode->getString();
+		float value = utils::numFromString<float>(str).unwrapOr(0);
+
+		updateInputValue(property, value);
+		m_triggerValues->setObject(CCFloat::create(value), property);
+		updateSlider(property, triggerSliderValueFromValue(property, value));
+	}
+	#endif
 
 	void triggerSliderChanged(CCObject* param) {
 		if (!precisionParams) return SetupTriggerPopup::triggerSliderChanged(param);
@@ -694,7 +717,7 @@ void updateTriggers(SetupTriggerPopup* popup, auto updater) {
 #include <Geode/modify/SetupCameraOffsetTrigger.hpp>
 class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("SetupCameraOffsetTrigger::textChanged", Priority::Early)) {
+		if (!self.setHookPriorityPost("SetupCameraOffsetTrigger::textChanged", Priority::Late)) {
 			log::error("failed to set hook priority for SetupCameraOffsetTrigger::textChanged");
 		}
 	}
@@ -710,11 +733,11 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 		}
 
 		if (m_offsetX != -99999 && m_offsetXInput != nullptr)
-			m_offsetXInput->setString(gd::string(fmt::format("{}", object->m_moveOffset.x / 3.0f)));
+			m_offsetXInput->setString(fmt::format("{}", object->m_moveOffset.x / 3.0f));
 		if (m_offsetY != -99999 && m_offsetYInput != nullptr)
-			m_offsetYInput->setString(gd::string(fmt::format("{}", object->m_moveOffset.y / 3.0f)));
+			m_offsetYInput->setString(fmt::format("{}", object->m_moveOffset.y / 3.0f));
 		if (m_moveTimeInput != nullptr)
-			m_moveTimeInput->setString(gd::string(fmt::format("{}", m_moveTime)));
+			m_moveTimeInput->setString(fmt::format("{}", m_moveTime));
 		return true;
 	}
 
@@ -722,7 +745,7 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 		if (!precisionParams) return SetupCameraOffsetTrigger::textChanged(inputNode);
 		if (m_disableTextDelegate) return;
 
-		gd::string str = inputNode->getString();
+		std::string str = inputNode->getString();
 		float value = utils::numFromString<float>(str).unwrapOr(0);
 
 		int type = inputNode->getTag();
@@ -730,26 +753,20 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 		Slider* slider;
 		switch (type) {
 			case 0: //X position
-				updateTriggers(this, [value](EffectGameObject* object) {
-					//yes, I checked the decompiled code, and the original function
-					//specifically does convert to a double, multiply, then convert back to a float
-					object->m_moveOffset.x = float(value * 3.0);
-				});
+				m_offsetX = value * 3.0;
+				updateMoveCommandPosX();
 				sliderValue = std::clamp(float(value / 200.0 + 0.5), 0.0f, 1.0f);
 				slider = m_offsetXSlider;
 				break;
 			case 1: //Y position
-				updateTriggers(this, [value](EffectGameObject* object) {
-					object->m_moveOffset.y = float(value * 3.0);
-				});
+				m_offsetY = value * 3.0;
+				updateMoveCommandPosY();
 				sliderValue = std::clamp(float(value / 200.0 + 0.5), 0.0f, 1.0f);
 				slider = m_offsetYSlider;
 				break;
 			default: //move time
 				m_moveTime = value;
-				updateTriggers(this, [value](EffectGameObject* object) {
-					object->m_duration = value;
-				});
+				updateDuration();
 				sliderValue = std::clamp(float(value / 10.0), 0.0f, 1.0f);
 				slider = m_moveTimeSlider;
 				break;
@@ -761,7 +778,7 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 #include <Geode/modify/GJFollowCommandLayer.hpp>
 class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("GJFollowCommandLayer::textChanged", Priority::Early)) {
+		if (!self.setHookPriorityPost("GJFollowCommandLayer::textChanged", Priority::Late)) {
 			log::error("failed to set hook priority for GJFollowCommandLayer::textChanged");
 		}
 	}
@@ -771,11 +788,11 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 		if (!precisionParams) return true;
 
 		if (m_xModInput != nullptr)
-			m_xModInput->setString(gd::string(fmt::format("{}", m_xMod)));
+			m_xModInput->setString(fmt::format("{}", m_xMod));
 		if (m_yModInput != nullptr)
-			m_yModInput->setString(gd::string(fmt::format("{}", m_yMod)));
+			m_yModInput->setString(fmt::format("{}", m_yMod));
 		if (m_moveTimeInput != nullptr)
-			m_moveTimeInput->setString(gd::string(fmt::format("{}", m_moveTime)));
+			m_moveTimeInput->setString(fmt::format("{}", m_moveTime));
 		return true;
 	}
 
@@ -783,7 +800,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 		if (!precisionParams) return GJFollowCommandLayer::textChanged(inputNode);
 		if (m_disableTextDelegate) return;
 
-		gd::string str = inputNode->getString();
+		std::string str = inputNode->getString();
 
 		int type = inputNode->getTag();
 		float sliderValue = 0.0;
@@ -809,9 +826,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_targetGroupID = std::max(0, value);
 				updateTargetGroupID();
-				updateTriggers(this, [](EffectGameObject* object) {
-					LevelEditorLayer::updateObjectLabel(object);
-				});
+				updateEditorLabel();
 				break;
 			}
 			case 4: { //follow group
@@ -823,9 +838,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 			default: { //duration (3)
 				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_moveTime = value;
-				updateTriggers(this, [value](EffectGameObject* object) {
-					object->m_duration = value;
-				});
+				updateDuration();
 				sliderValue = std::clamp(float(value / 10.0), 0.0f, 1.0f);
 				slider = m_moveTimeSlider;
 				break;
@@ -838,7 +851,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 #include <Geode/modify/ColorSelectPopup.hpp>
 class $modify(PrecisionColorSelect, ColorSelectPopup) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("ColorSelectPopup::updateOpacityLabel", Priority::Early)) {
+		if (!self.setHookPriorityPost("ColorSelectPopup::updateOpacityLabel", Priority::Late)) {
 			log::error("failed to set hook priority forColorSelectPopup::updateOpacityLabel");
 		}
 	}
@@ -853,7 +866,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		if (!ColorSelectPopup::init(p0, p1, p2)) return false;
 
 		if (precisionParams && m_fadeTimeInput != nullptr)
-			m_fadeTimeInput->setString(gd::string(fmt::format("{}", m_fadeTime)));
+			m_fadeTimeInput->setString(fmt::format("{}", m_fadeTime));
 
 		if (!sliderInputs) return true;
 
@@ -875,8 +888,8 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		m_fields->opacityField = TextInput::create(40, "");
 		m_fields->opacityField->setID("hpe-opacity-field");
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
-		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
-		m_fields->opacityField->setCallback([this](const gd::string& str) {
+		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setCallback([this](const std::string& str) {
 			auto result = utils::numFromString<float>(str);
 			if (!result.isOk()) return;
 			m_opacity = result.unwrap();
@@ -892,8 +905,26 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		if (!precisionParams) return ColorSelectPopup::updateOpacityLabel();
 
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
+		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
 	}
+
+	#ifdef GEODE_IS_MACOS
+	void onDefault(CCObject* sender) {
+		ColorSelectPopup::onDefault(sender);
+
+		if (!precisionParams || !m_gameObject) return;
+		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
+		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+	}
+
+	void sliderChanged(CCObject* sender) {
+		ColorSelectPopup::sliderChanged(sender);
+
+		if (!precisionParams || sender->getTag() != 2) return;
+		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
+		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+	}
+	#endif
 
 	void textChanged(CCTextInputNode* inputNode) override {
 		//i am too lazy to rewrite all that logic
@@ -905,9 +936,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		if (type == 5) { //fade time
 			float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 			m_fadeTime = value;
-			updateTriggers(this, [value](EffectGameObject* object) {
-				object->m_duration = value;
-			});
+			updateDuration();
 			m_fadeTimeSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
 		}
 	}
@@ -919,11 +948,11 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 		if (!precisionParams) return true;
 
 		if (m_fadeInInput != nullptr)
-			m_fadeInInput->setString(gd::string(fmt::format("{}", m_fadeInTime)));
+			m_fadeInInput->setString(fmt::format("{}", m_fadeInTime));
 		if (m_holdInput != nullptr)
-			m_holdInput->setString(gd::string(fmt::format("{}", m_holdTime)));
+			m_holdInput->setString(fmt::format("{}", m_holdTime));
 		if (m_fadeOutInput != nullptr)
-			m_fadeOutInput->setString(gd::string(fmt::format("{}", m_fadeOutTime)));
+			m_fadeOutInput->setString(fmt::format("{}", m_fadeOutTime));
 
 		return true;
 	}
@@ -939,26 +968,20 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 			case 8: { //fade in time
 				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_fadeInTime = value;
-				updateTriggers(this, [value](EffectGameObject* object) {
-					object->m_fadeInDuration = value;
-				});
+				updateFadeInTime();
 				m_fadeInSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
 			}
 			case 9: { //hold time
 				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_holdTime = value;
-				updateTriggers(this, [value](EffectGameObject* object) {
-					object->m_holdDuration = value;
-				});
+				updateHoldTime();
 				m_holdSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
 			}
 			case 10: { //fade out time
 				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_fadeOutTime = value;
-				updateTriggers(this, [value](EffectGameObject* object) {
-					object->m_fadeOutDuration = value;
-				});
-				m_holdSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
+				updateFadeOutTime();
+				m_fadeOutSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
 			}
 			default: break;
 		}
@@ -967,10 +990,10 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 #include <Geode/modify/SetupOpacityPopup.hpp>
 class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("SetupOpacityPopup::textChanged", Priority::Early)) {
+		if (!self.setHookPriorityPost("SetupOpacityPopup::textChanged", Priority::Late)) {
 			log::error("failed to set hook priority for SetupOpacityPopup::textChanged");
 		}
-		if (!self.setHookPriorityPost("SetupOpacityPopup::updateOpacityLabel", Priority::Early)) {
+		if (!self.setHookPriorityPost("SetupOpacityPopup::updateOpacityLabel", Priority::Late)) {
 			log::error("failed to set hook priority for SetupOpacityPopup::updateOpacityLabel");
 		}
 	}
@@ -984,7 +1007,7 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		if (!SetupOpacityPopup::init(p0, p1)) return false;
 
 		if (precisionParams && m_fadeTimeInput != nullptr)
-			m_fadeTimeInput->setString(gd::string(fmt::format("{}", m_fadeTime)));
+			m_fadeTimeInput->setString(fmt::format("{}", m_fadeTime));
 
 		if (!sliderInputs) return true;
 
@@ -1002,16 +1025,14 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		m_fields->opacityField->setPosition(m_fadeTimeInput->getPositionX(), m_opacityLabel->getPositionY());
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
 		if (precisionParams)
-			m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
+			m_fields->opacityField->setString(fmt::format("{}", m_opacity));
 		else
-			m_fields->opacityField->setString(gd::string(fmt::format("{:.2f}", m_fadeTime)));
-		m_fields->opacityField->setCallback([this](const gd::string& str) {
+			m_fields->opacityField->setString(fmt::format("{:.2f}", m_fadeTime));
+		m_fields->opacityField->setCallback([this](const std::string& str) {
 			auto result = utils::numFromString<float>(str);
 			if (!result.isOk()) return;
 			m_opacity = result.unwrap();
-			updateTriggers(this, [str, this](EffectGameObject* object) {
-				object->m_opacity = m_opacity;
-			});
+			updateOpacity();
 			m_opacitySlider->setValue(std::clamp(m_opacity, 0.0f, 1.0f));
 		});
 		m_mainLayer->addChild(m_fields->opacityField);
@@ -1021,22 +1042,30 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 	void updateOpacityLabel() {
 		if (!precisionParams) return SetupOpacityPopup::updateOpacityLabel();
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(gd::string(fmt::format("{}", m_opacity)));
+		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
 	}
+
+	#ifdef GEODE_IS_MACOS
+	void sliderChanged(CCObject* sender) {
+		SetupOpacityPopup::sliderChanged(sender);
+
+		if (!precisionParams || sender->getTag() != 2) return;
+		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
+		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+	}
+	#endif
 
 	void textChanged(CCTextInputNode* inputNode) override {
 		if (!precisionParams) return SetupOpacityPopup::textChanged(inputNode);
 		if (m_disableTextDelegate) return;
 
-		gd::string str = inputNode->getString();
+		std::string str = inputNode->getString();
 
 		int type = inputNode->getTag();
 		if (type == 3) { //target group ID
 			m_groupID = utils::numFromString<int>(str).unwrapOr(0);
 			updateTargetID();
-			updateTriggers(this, [](EffectGameObject* object) {
-				LevelEditorLayer::updateObjectLabel(object);
-			});
+			updateEditorLabel();
 		} else { //fade time
 			m_fadeTime = utils::numFromString<float>(str).unwrapOr(0);
 			updateDuration();
@@ -1047,7 +1076,7 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 #include <Geode/modify/SetupRandTriggerPopup.hpp>
 class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("SetupRandTriggerPopup::textChanged", Priority::Early)) {
+		if (!self.setHookPriorityPost("SetupRandTriggerPopup::textChanged", Priority::Late)) {
 			log::error("failed to set hook priority for SetupRandTriggerPopup::textChanged");
 		}
 	}
@@ -1056,7 +1085,7 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 		if (!precisionParams) return SetupRandTriggerPopup::textChanged(inputNode);
 		if (m_disableTextDelegate) return;
 
-		gd::string str = inputNode->getString();
+		std::string str = inputNode->getString();
 
 		int type = inputNode->getTag();
 		switch (type) {
@@ -1064,24 +1093,18 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_groupID1 = value;
 				updateTargetID();
-				updateTriggers(this, [](EffectGameObject* object) {
-					LevelEditorLayer::updateObjectLabel(object);
-				});
+				updateEditorLabel();
 			}
 			case 5: { //target id 2
 				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_groupID2 = value;
 				updateTargetID2();
-				updateTriggers(this, [](EffectGameObject* object) {
-					LevelEditorLayer::updateObjectLabel(object);
-				});
+				updateEditorLabel();
 			}
 			case 4: { //chance
 				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_chancePercent = value;
-				updateTriggers(this, [value, this](EffectGameObject* object) {
-					object->m_duration = value;
-				});
+				updateChance();
 			}
 			default: break;
 		}
