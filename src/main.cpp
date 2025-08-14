@@ -17,7 +17,7 @@ gd::string patchSaveString(gd::string save, CCObject* self, gd::string (*patcher
 		size_t key_start = pos;
 		do {
 			c = save[pos++];
-		} while (c != ',');
+		} while (c != ',' && pos < save.size());
 
 		gd::string keyStr = gd::string(
 			save.data() + key_start,
@@ -33,7 +33,7 @@ gd::string patchSaveString(gd::string save, CCObject* self, gd::string (*patcher
 		size_t val_start = pos;
 		do {
 			c = save[pos++];
-		} while (c != ',');
+		} while (c != ',' && pos < save.size());
 
 		out << patcher(self, key, gd::string(save.data() + val_start, std::min(pos - val_start - 1, save.size() - val_start)));
 	}

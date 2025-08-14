@@ -1,3 +1,6 @@
+# 0.1.5
+- Fixed an out-of-bounds read
+
 # 0.1.4
 - Internal code refactoring
 
