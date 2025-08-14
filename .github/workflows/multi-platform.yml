@@ -26,6 +26,12 @@ jobs:
         with:
           combine: true
           target: ${{ matrix.config.target }}
+          build-config: RelWithDebInfo
+          # Export the pdb alongside the .geode file
+          export-pdb: true
+          # Bundle the pdb inside the .geode file
+          # Be warned, they can be quite big
+          bundle-pdb: true
 
   package:
     name: Package builds
