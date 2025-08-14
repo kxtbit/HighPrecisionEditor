@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-gd::string patchSaveString(gd::string save, auto patcher) {
+gd::string patchSaveString(gd::string save, CCObject* self, gd::string (*patcher)(CCObject*, const int, gd::string)) {
 	size_t pos = 0;
 	std::stringstream out;
 	char c;
@@ -35,7 +35,7 @@ gd::string patchSaveString(gd::string save, auto patcher) {
 			c = save[pos++];
 		} while (c != ',');
 
-		out << patcher(key, gd::string(save.data() + val_start, std::min(pos - val_start - 1, save.size() - val_start)));
+		out << patcher(self, key, gd::string(save.data() + val_start, std::min(pos - val_start - 1, save.size() - val_start)));
 	}
 
 	return out.str();
@@ -79,30 +79,31 @@ $execute {
 class $modify(PrecisionGameObject, GameObject) {
 	gd::string getSaveString(GJBaseGameLayer* layer) override {
 		gd::string save = GameObject::getSaveString(layer);
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionGameObject*) rawSelf;
 			switch (key) {
 				case 2:
 					if (!precisionPosition) return orig;
-					return gd::string(gd::string(fmt::format("{}", m_positionX)));
+					return gd::string(gd::string(fmt::format("{}", self->m_positionX)));
 				case 3:
 					if (!precisionPosition) return orig;
-					return gd::string(gd::string(fmt::format("{}", m_positionY - 90)));
+					return gd::string(gd::string(fmt::format("{}", self->m_positionY - 90)));
 				case 32:
 					if (!precisionScale) return orig;
-					return gd::string(gd::string(fmt::format("{}", std::max(m_scaleX, m_scaleY))));
+					return gd::string(gd::string(fmt::format("{}", std::max(self->m_scaleX, self->m_scaleY))));
 				case 6:
 				case 131:
 					if (!precisionRotation) return orig;
-					return gd::string(gd::string(fmt::format("{}", m_fRotationX)));
+					return gd::string(gd::string(fmt::format("{}", self->m_fRotationX)));
 				case 132:
 					if (!precisionRotation) return orig;
-					return gd::string(gd::string(fmt::format("{}", m_fRotationY)));
+					return gd::string(gd::string(fmt::format("{}", self->m_fRotationY)));
 				case 128:
 					if (!precisionScale) return orig;
-					return gd::string(gd::string(fmt::format("{}", m_scaleX)));
+					return gd::string(gd::string(fmt::format("{}", self->m_scaleX)));
 				case 129:
 					if (!precisionScale) return orig;
-					return gd::string(gd::string(fmt::format("{}", m_scaleY)));
+					return gd::string(gd::string(fmt::format("{}", self->m_scaleY)));
 
 				default:
 					return orig;
@@ -116,77 +117,78 @@ class $modify(PrecisionEffectObject, EffectGameObject) {
 		gd::string save = EffectGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionEffectObject*) rawSelf;
 			switch (key) {
 					//trigger common
 				case 10: //also used as random trigger chance
-					return gd::string(fmt::format("{}", m_duration));
+					return gd::string(fmt::format("{}", self->m_duration));
 				case 85:
-					return gd::string(fmt::format("{}", m_easingRate));
+					return gd::string(fmt::format("{}", self->m_easingRate));
 
 					//move trigger
 				case 28: //also used by camera offset and guide triggers
-					return gd::string(fmt::format("{}", m_moveOffset.x));
+					return gd::string(fmt::format("{}", self->m_moveOffset.x));
 				case 29: //also used by camera offset and guide triggers
-					return gd::string(fmt::format("{}", m_moveOffset.y));
+					return gd::string(fmt::format("{}", self->m_moveOffset.y));
 				case 143:
-					return gd::string(fmt::format("{}", m_moveModX));
+					return gd::string(fmt::format("{}", self->m_moveModX));
 				case 144:
-					return gd::string(fmt::format("{}", m_moveModY));
+					return gd::string(fmt::format("{}", self->m_moveModY));
 
 					//rotate trigger
 				case 68: //also used by camera rotate trigger
-					return gd::string(fmt::format("{}", m_rotationDegrees));
+					return gd::string(fmt::format("{}", self->m_rotationDegrees));
 				case 402:
-					return gd::string(fmt::format("{}", m_rotationOffset));
+					return gd::string(fmt::format("{}", self->m_rotationOffset));
 
 					//pulse trigger
 				case 45:
-					return gd::string(fmt::format("{}", m_fadeInDuration));
+					return gd::string(fmt::format("{}", self->m_fadeInDuration));
 				case 46:
-					return gd::string(fmt::format("{}", m_holdDuration));
+					return gd::string(fmt::format("{}", self->m_holdDuration));
 				case 47:
-					return gd::string(fmt::format("{}", m_fadeOutDuration));
+					return gd::string(fmt::format("{}", self->m_fadeOutDuration));
 
 					//alpha trigger
 				case 35:
-					return gd::string(fmt::format("{}", m_opacity));
+					return gd::string(fmt::format("{}", self->m_opacity));
 
 					//shake trigger
 				case 75:
-					return gd::string(fmt::format("{}", m_shakeStrength));
+					return gd::string(fmt::format("{}", self->m_shakeStrength));
 				case 84:
-					return gd::string(fmt::format("{}", m_shakeInterval));
+					return gd::string(fmt::format("{}", self->m_shakeInterval));
 
 					//follow trigger
 				case 72:
-					return gd::string(fmt::format("{}", m_followXMod));
+					return gd::string(fmt::format("{}", self->m_followXMod));
 				case 73:
-					return gd::string(fmt::format("{}", m_followYMod));
+					return gd::string(fmt::format("{}", self->m_followYMod));
 
 					//follow player y trigger
 				case 90:
-					return gd::string(fmt::format("{}", m_followYSpeed));
+					return gd::string(fmt::format("{}", self->m_followYSpeed));
 				case 91:
-					return gd::string(fmt::format("{}", m_followYDelay));
+					return gd::string(fmt::format("{}", self->m_followYDelay));
 				case 105:
-					return gd::string(fmt::format("{}", m_followYMaxSpeed));
+					return gd::string(fmt::format("{}", self->m_followYMaxSpeed));
 
 					//camera zoom trigger
 				case 371: //also used by camera guide
-					return gd::string(fmt::format("{}", m_zoomValue));
+					return gd::string(fmt::format("{}", self->m_zoomValue));
 
 					//camera mode trigger
 				case 114:
-					return gd::string(fmt::format("{}", m_cameraPaddingValue));
+					return gd::string(fmt::format("{}", self->m_cameraPaddingValue));
 
 					//timewarp trigger
 				case 120:
-					return gd::string(fmt::format("{}", m_timeWarpTimeMod));
+					return gd::string(fmt::format("{}", self->m_timeWarpTimeMod));
 
 					//gravity trigger
 				case 148:
-					return gd::string(fmt::format("{}", m_gravityValue));
+					return gd::string(fmt::format("{}", self->m_gravityValue));
 
 				default:
 					return orig;
@@ -200,13 +202,14 @@ class $modify(PrecisionTransformTrigger, TransformTriggerGameObject) {
 		gd::string save = TransformTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionTransformTrigger*) rawSelf;
 			switch (key) {
 					//scale trigger
 				case 150:
-					return gd::string(fmt::format("{}", m_objectScaleX));
+					return gd::string(fmt::format("{}", self->m_objectScaleX));
 				case 151:
-					return gd::string(fmt::format("{}", m_objectScaleY));
+					return gd::string(fmt::format("{}", self->m_objectScaleY));
 
 				default:
 					return orig;
@@ -220,20 +223,21 @@ class $modify(PrecisionKeyframeAnimTrigger, KeyframeAnimTriggerObject) {
 		gd::string save = KeyframeAnimTriggerObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionKeyframeAnimTrigger*) rawSelf;
 			switch (key) {
 				case 520:
-					return gd::string(fmt::format("{}", m_timeMod));
+					return gd::string(fmt::format("{}", self->m_timeMod));
 				case 521:
-					return gd::string(fmt::format("{}", m_positionXMod));
+					return gd::string(fmt::format("{}", self->m_positionXMod));
 				case 545:
-					return gd::string(fmt::format("{}", m_positionYMod));
+					return gd::string(fmt::format("{}", self->m_positionYMod));
 				case 522:
-					return gd::string(fmt::format("{}", m_rotationMod));
+					return gd::string(fmt::format("{}", self->m_rotationMod));
 				case 523:
-					return gd::string(fmt::format("{}", m_scaleXMod));
+					return gd::string(fmt::format("{}", self->m_scaleXMod));
 				case 546:
-					return gd::string(fmt::format("{}", m_scaleYMod));
+					return gd::string(fmt::format("{}", self->m_scaleYMod));
 
 				default:
 					return orig;
@@ -247,10 +251,11 @@ class $modify(PrecisionKeyframeGameObject, KeyframeGameObject) {
 		gd::string save = KeyframeGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionKeyframeGameObject*) rawSelf;
 			switch (key) {
 				case 557:
-					return gd::string(fmt::format("{}", m_spawnDelay));
+					return gd::string(fmt::format("{}", self->m_spawnDelay));
 
 				default:
 					return orig;
@@ -264,10 +269,11 @@ class $modify(PrecisionGradientTrigger, GradientTriggerObject) {
 		gd::string save = GradientTriggerObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionGradientTrigger*) rawSelf;
 			switch (key) {
 				case 456:
-					return gd::string(fmt::format("{}", m_previewOpacity));
+					return gd::string(fmt::format("{}", self->m_previewOpacity));
 
 				default:
 					return orig;
@@ -281,12 +287,13 @@ class $modify(PrecisionCameraTrigger, CameraTriggerGameObject) {
 		gd::string save = CameraTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionCameraTrigger*) rawSelf;
 			switch (key) {
 				case 213:
-					return gd::string(fmt::format("{}", m_followEasing));
+					return gd::string(fmt::format("{}", self->m_followEasing));
 				case 454:
-					return gd::string(fmt::format("{}", m_velocityModifier));
+					return gd::string(fmt::format("{}", self->m_velocityModifier));
 
 				default:
 					return orig;
@@ -300,14 +307,15 @@ class $modify(PrecisionItemTrigger, ItemTriggerGameObject) {
 		gd::string save = ItemTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionItemTrigger*) rawSelf;
 			switch (key) {
 				case 479:
-					return gd::string(fmt::format("{}", m_mod1));
+					return gd::string(fmt::format("{}", self->m_mod1));
 				case 483:
-					return gd::string(fmt::format("{}", m_mod2));
+					return gd::string(fmt::format("{}", self->m_mod2));
 				case 484:
-					return gd::string(fmt::format("{}", m_tolerance));
+					return gd::string(fmt::format("{}", self->m_tolerance));
 
 				default:
 					return orig;
@@ -321,20 +329,21 @@ class $modify(PrecisionSFXTrigger, SFXTriggerGameObject) {
 		gd::string save = SFXTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionSFXTrigger*) rawSelf;
 			switch (key) {
 				case 406: //also used by song trigger
-					return gd::string(fmt::format("{}", m_volume));
+					return gd::string(fmt::format("{}", self->m_volume));
 				case 421:
-					return gd::string(fmt::format("{}", m_volumeNear));
+					return gd::string(fmt::format("{}", self->m_volumeNear));
 				case 422:
-					return gd::string(fmt::format("{}", m_volumeMedium));
+					return gd::string(fmt::format("{}", self->m_volumeMedium));
 				case 423:
-					return gd::string(fmt::format("{}", m_volumeFar));
+					return gd::string(fmt::format("{}", self->m_volumeFar));
 				case 434:
-					return gd::string(fmt::format("{}", m_minInterval));
+					return gd::string(fmt::format("{}", self->m_minInterval));
 				case 490:
-					return gd::string(fmt::format("{}", m_soundDuration));
+					return gd::string(fmt::format("{}", self->m_soundDuration));
 
 				default:
 					return orig;
@@ -348,14 +357,15 @@ class $modify(PrecisionTimerTrigger, TimerTriggerGameObject) {
 		gd::string save = TimerTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionTimerTrigger*) rawSelf;
 			switch (key) {
 				case 467:
-					return gd::string(fmt::format("{}", m_startTime));
+					return gd::string(fmt::format("{}", self->m_startTime));
 				case 473: //also used by time event trigger
-					return gd::string(fmt::format("{}", m_targetTime));
+					return gd::string(fmt::format("{}", self->m_targetTime));
 				case 470:
-					return gd::string(fmt::format("{}", m_timeMod));
+					return gd::string(fmt::format("{}", self->m_timeMod));
 
 				default:
 					return orig;
@@ -369,12 +379,13 @@ class $modify(PrecisionSpawnTrigger, SpawnTriggerGameObject) {
 		gd::string save = SpawnTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionSpawnTrigger*) rawSelf;
 			switch (key) {
 				case 63:
-					return gd::string(fmt::format("{}", m_spawnDelay));
+					return gd::string(fmt::format("{}", self->m_spawnDelay));
 				case 556:
-					return gd::string(fmt::format("{}", m_delayRange));
+					return gd::string(fmt::format("{}", self->m_delayRange));
 
 				default:
 					return orig;
@@ -388,12 +399,13 @@ class $modify(PrecisionSequenceTrigger, SequenceTriggerGameObject) {
 		gd::string save = SequenceTriggerGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionSequenceTrigger*) rawSelf;
 			switch (key) {
 				case 437:
-					return gd::string(fmt::format("{}", m_minInt));
+					return gd::string(fmt::format("{}", self->m_minInt));
 				case 438:
-					return gd::string(fmt::format("{}", m_reset));
+					return gd::string(fmt::format("{}", self->m_reset));
 
 				default:
 					return orig;
@@ -407,12 +419,13 @@ class $modify(PrecisionSpawnParticle, SpawnParticleGameObject) {
 		gd::string save = SpawnParticleGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionSpawnParticle*) rawSelf;
 			switch (key) {
 				case 554:
-					return gd::string(fmt::format("{}", m_scale));
+					return gd::string(fmt::format("{}", self->m_scale));
 				case 555:
-					return gd::string(fmt::format("{}", m_scaleVariance));
+					return gd::string(fmt::format("{}", self->m_scaleVariance));
 
 				default:
 					return orig;
@@ -426,12 +439,13 @@ class $modify(PrecisionRotateGameplay, RotateGameplayGameObject) {
 		gd::string save = RotateGameplayGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionRotateGameplay*) rawSelf;
 			switch (key) {
 				case 582:
-					return gd::string(fmt::format("{}", m_velocityModX));
+					return gd::string(fmt::format("{}", self->m_velocityModX));
 				case 583:
-					return gd::string(fmt::format("{}", m_velocityModY));
+					return gd::string(fmt::format("{}", self->m_velocityModY));
 
 				default:
 					return orig;
@@ -445,10 +459,11 @@ class $modify(PrecisionGameOptions, GameOptionsTrigger) {
 		gd::string save = GameOptionsTrigger::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionGameOptions*) rawSelf;
 			switch (key) {
 				case 574:
-					return gd::string(fmt::format("{}", m_respawnTime));
+					return gd::string(fmt::format("{}", self->m_respawnTime));
 
 				default:
 					return orig;
@@ -462,14 +477,15 @@ class $modify(PrecisionTeleportPortal, TeleportPortalObject) {
 		gd::string save = TeleportPortalObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionTeleportPortal*) rawSelf;
 			switch (key) {
 				case 348:
-					return gd::string(fmt::format("{}", m_redirectForceMin));
+					return gd::string(fmt::format("{}", self->m_redirectForceMin));
 				case 349:
-					return gd::string(fmt::format("{}", m_redirectForceMax));
+					return gd::string(fmt::format("{}", self->m_redirectForceMax));
 				case 350:
-					return gd::string(fmt::format("{}", m_redirectForceMod));
+					return gd::string(fmt::format("{}", self->m_redirectForceMod));
 
 				default:
 					return orig;
@@ -483,34 +499,35 @@ class $modify(PrecisionShaderGameObject, ShaderGameObject) {
 		gd::string save = ShaderGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionShaderGameObject*) rawSelf;
 			switch (key) {
 				case 175:
-					return gd::string(fmt::format("{}", m_speed));
+					return gd::string(fmt::format("{}", self->m_speed));
 				case 176:
-					return gd::string(fmt::format("{}", m_strength));
+					return gd::string(fmt::format("{}", self->m_strength));
 				case 179:
-					return gd::string(fmt::format("{}", m_waveWidth));
+					return gd::string(fmt::format("{}", self->m_waveWidth));
 				case 180:
-					return gd::string(fmt::format("{}", m_targetX));
+					return gd::string(fmt::format("{}", self->m_targetX));
 				case 189:
-					return gd::string(fmt::format("{}", m_targetY));
+					return gd::string(fmt::format("{}", self->m_targetY));
 				case 181:
-					return gd::string(fmt::format("{}", m_fadeIn));
+					return gd::string(fmt::format("{}", self->m_fadeIn));
 				case 182:
-					return gd::string(fmt::format("{}", m_fadeOut));
+					return gd::string(fmt::format("{}", self->m_fadeOut));
 				case 177:
-					return gd::string(fmt::format("{}", m_timeOff));
+					return gd::string(fmt::format("{}", self->m_timeOff));
 				case 512:
-					return gd::string(fmt::format("{}", m_maxSize));
+					return gd::string(fmt::format("{}", self->m_maxSize));
 				case 290:
-					return gd::string(fmt::format("{}", m_screenOffsetX));
+					return gd::string(fmt::format("{}", self->m_screenOffsetX));
 				case 291:
-					return gd::string(fmt::format("{}", m_screenOffsetY));
+					return gd::string(fmt::format("{}", self->m_screenOffsetY));
 				case 183:
-					return gd::string(fmt::format("{}", m_inner));
+					return gd::string(fmt::format("{}", self->m_inner));
 				case 191:
-					return gd::string(fmt::format("{}", m_outer));
+					return gd::string(fmt::format("{}", self->m_outer));
 
 				default:
 					return orig;
@@ -524,14 +541,15 @@ class $modify(PrecisionForceBlock, ForceBlockGameObject) {
 		gd::string save = ForceBlockGameObject::getSaveString(layer);
 		if (!precisionParams) return save;
 
-		return patchSaveString(save, [this](const int key, gd::string orig) {
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, gd::string orig) {
+			auto self = (PrecisionForceBlock*) rawSelf;
 			switch (key) {
 				case 149:
-					return gd::string(fmt::format("{}", m_force));
+					return gd::string(fmt::format("{}", self->m_force));
 				case 526:
-					return gd::string(fmt::format("{}", m_minForce));
+					return gd::string(fmt::format("{}", self->m_minForce));
 				case 527:
-					return gd::string(fmt::format("{}", m_maxForce));
+					return gd::string(fmt::format("{}", self->m_maxForce));
 
 				default:
 					return orig;
