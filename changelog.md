@@ -1,3 +1,6 @@
+# 0.1.7
+- Fixed a bug that caused the parameters of some triggers to not save properly on iOS (and presumably macOS).
+
 # 0.1.6
 - Fixed a bug that caused levels to be corrupted when saving (this is why you should keep backups)
 

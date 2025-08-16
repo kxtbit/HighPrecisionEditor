@@ -677,6 +677,7 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 
 		updateInputValue(property, value);
 		m_triggerValues->setObject(CCFloat::create(value), property);
+		valueChanged(property, value);
 		updateSlider(property, triggerSliderValueFromValue(property, value));
 	}
 	#endif
