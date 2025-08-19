@@ -1,3 +1,6 @@
+# 0.1.8
+- Fixed a bug that caused the hold time and fade out time parameters of the pulse trigger to take on the value of the fade in time when opening the Edit Object menu
+
 # 0.1.7
 - Fixed a bug that caused the parameters of some triggers to not save properly on iOS (and presumably macOS).
 

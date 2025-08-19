@@ -956,12 +956,17 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 		if (!SetupPulsePopup::init(p0, p1)) return false;
 		if (!precisionParams) return true;
 
+		bool oldDisableTextDelegate = m_disableTextDelegate;
+		m_disableTextDelegate = true;
+
 		if (m_fadeInInput != nullptr)
 			m_fadeInInput->setString(fmt::format("{}", m_fadeInTime));
-		if (m_holdInput != nullptr)
-			m_holdInput->setString(fmt::format("{}", m_holdTime));
-		if (m_fadeOutInput != nullptr)
-			m_fadeOutInput->setString(fmt::format("{}", m_fadeOutTime));
+		//if (m_holdInput != nullptr)
+		//	m_holdInput->setString(fmt::format("{}", m_holdTime));
+		//if (m_fadeOutInput != nullptr)
+		//	m_fadeOutInput->setString(fmt::format("{}", m_fadeOutTime));
+
+		m_disableTextDelegate = oldDisableTextDelegate;
 
 		return true;
 	}
