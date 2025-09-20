@@ -47,6 +47,7 @@ jobs:
           # Bundle the pdb inside the .geode file
           # Be warned, they can be quite big
           bundle-pdb: true
+          bindings: 'kxtbit/bindings'
 
   package:
     name: Package builds
