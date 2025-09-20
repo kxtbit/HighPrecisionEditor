@@ -927,16 +927,26 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 	void onDefault(CCObject* sender) {
 		ColorSelectPopup::onDefault(sender);
 
-		if (!precisionParams || !m_gameObject) return;
+		if ((!precisionParams && !sliderInputs) || !m_gameObject) return;
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
+
+		if (!sliderInputs) {
+			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
+			return;
+		}
 		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
 	}
 
 	void sliderChanged(CCObject* sender) {
 		ColorSelectPopup::sliderChanged(sender);
 
-		if (!precisionParams || sender->getTag() != 2) return;
+		if ((!precisionParams && !sliderInputs) || sender->getTag() != 2) return;
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
+
+		if (!sliderInputs) {
+			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
+			return;
+		}
 		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
 	}
 	#endif
@@ -1071,9 +1081,14 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 	void sliderChanged(CCObject* sender) {
 		SetupOpacityPopup::sliderChanged(sender);
 
-		if (!precisionParams || sender->getTag() != 2) return;
+		if ((!precisionParams && !sliderInputs) || sender->getTag() != 2) return;
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+
+		if (!sliderInputs) {
+			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
+			return;
+		}
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 	}
 	#endif
 
@@ -1141,6 +1156,21 @@ class $modify(PrecisionTimeWarpPopup, SetupTimeWarpPopup) {
 
 		return true;
 	};
+
+	#ifdef GEODE_IS_MACOS
+	void sliderChanged(CCObject* sender) {
+		SetupTimeWarpPopup::sliderChanged(sender);
+
+		if (!precisionParams && !sliderInputs) return;
+		if (m_timeWarpLabel == nullptr || m_fields->timeWarpField == nullptr || m_fields->timeWarpField->getInputNode() == nullptr) return;
+
+		if (!sliderInputs) {
+			m_timeWarpLabel->setString(fmt::format("Opacity: {}", m_timeWarpMod).c_str());
+			return;
+		}
+		m_fields->timeWarpField->setString(precisionParams ? fmt::format("{}", m_timeWarpMod) : fmt::format("{:.2f}", m_timeWarpMod));
+	}
+	#endif
 
 	void updateTimeWarpLabel() {
 		if (!precisionParams && !sliderInputs) return SetupTimeWarpPopup::updateTimeWarpLabel();
