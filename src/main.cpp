@@ -879,6 +879,8 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 
 		if (!sliderInputs) return true;
 
+		if (m_opacityLabel == nullptr) return true;
+
 		m_opacityLabel->setOpacity(0);
 		m_fields->opacityMenu = new CCMenu();
 		m_fields->opacityMenu->setPosition(m_opacityLabel->getPosition());
@@ -886,18 +888,18 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 										 ->setAutoScale(false)
 										 ->setAutoGrowAxis(true)
 										 ->setCrossAxisOverflow(true));
-		m_fields->opacityMenu->setID("hpe-opacity-container");
+		m_fields->opacityMenu->setID("opacity-container"_spr);
 		m_mainLayer->addChild(m_fields->opacityMenu);
 
 		m_fields->newOpacityLabel = CCLabelBMFont::create("Opacity:", "goldFont.fnt");
 		m_fields->newOpacityLabel->setScale(0.65);
-		m_fields->newOpacityLabel->setID("hpe-opacity-label");
+		m_fields->newOpacityLabel->setID("opacity-label"_spr);
 		m_fields->opacityMenu->addChild(m_fields->newOpacityLabel);
 
 		m_fields->opacityField = TextInput::create(40, "");
-		m_fields->opacityField->setID("hpe-opacity-field");
+		m_fields->opacityField->setID("opacity-field"_spr);
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 		m_fields->opacityField->setCallback([this](const std::string& str) {
 			auto result = utils::numFromString<float>(str);
 			if (!result.isOk()) return;
@@ -911,10 +913,14 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		return true;
 	}
 	void updateOpacityLabel() {
-		if (!precisionParams) return ColorSelectPopup::updateOpacityLabel();
+		if (!precisionParams && !sliderInputs) return ColorSelectPopup::updateOpacityLabel();
 
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		if (!sliderInputs) {
+			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
+			return;
+		}
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 	}
 
 	#ifdef GEODE_IS_MACOS
@@ -1031,17 +1037,14 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		m_fields->newOpacityLabel->setScale(0.7);
 		m_fields->newOpacityLabel->setPosition(m_opacityLabel->getPosition());
 		m_fields->newOpacityLabel->setAnchorPoint(ccp(1.0f, 0.5f));
-		m_fields->newOpacityLabel->setID("hpe-opacity-label");
+		m_fields->newOpacityLabel->setID("opacity-label"_spr);
 		m_mainLayer->addChild(m_fields->newOpacityLabel);
 
 		m_fields->opacityField = TextInput::create(70, "");
-		m_fields->opacityField->setID("hpe-opacity-field");
+		m_fields->opacityField->setID("opacity-field"_spr);
 		m_fields->opacityField->setPosition(m_fadeTimeInput->getPositionX(), m_opacityLabel->getPositionY());
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
-		if (precisionParams)
-			m_fields->opacityField->setString(fmt::format("{}", m_opacity));
-		else
-			m_fields->opacityField->setString(fmt::format("{:.2f}", m_fadeTime));
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 		m_fields->opacityField->setCallback([this](const std::string& str) {
 			auto result = utils::numFromString<float>(str);
 			if (!result.isOk()) return;
@@ -1054,9 +1057,14 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		return true;
 	}
 	void updateOpacityLabel() {
-		if (!precisionParams) return SetupOpacityPopup::updateOpacityLabel();
+		if (!precisionParams && !sliderInputs) return SetupOpacityPopup::updateOpacityLabel();
 		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+
+		if (!sliderInputs) {
+			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
+			return;
+		}
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 	}
 
 	#ifdef GEODE_IS_MACOS
@@ -1085,6 +1093,64 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 			updateDuration();
 			m_fadeTimeSlider->setValue(float(m_fadeTime / 10.0));
 		}
+	}
+};
+#include <Geode/modify/SetupTimeWarpPopup.hpp>
+class $modify(PrecisionTimeWarpPopup, SetupTimeWarpPopup) {
+	static void onModify(auto& self) {
+		if (!self.setHookPriorityPost("SetupOpacityPopup::updateTimeWarpLabel", Priority::Late)) {
+			log::error("failed to set hook priority for SetupOpacityPopup::updateTimeWarpLabel");
+		}
+	}
+
+	struct Fields {
+		CCLabelBMFont* newTimeWarpLabel;
+		TextInput* timeWarpField;
+	};
+
+	bool init(EffectGameObject* p0, CCArray* p1) {
+		if (!SetupTimeWarpPopup::init(p0, p1)) return false;
+
+		if (!sliderInputs) return true;
+
+		m_timeWarpLabel->setOpacity(0);
+
+		m_fields->newTimeWarpLabel = CCLabelBMFont::create("Opacity: ", "goldFont.fnt");
+		m_fields->newTimeWarpLabel->setScale(0.7);
+		m_fields->newTimeWarpLabel->setPosition(m_timeWarpLabel->getPosition());
+		m_fields->newTimeWarpLabel->setAnchorPoint(ccp(1.0f, 0.5f));
+		m_fields->newTimeWarpLabel->setID("time-mod-label"_spr);
+		m_mainLayer->addChild(m_fields->newTimeWarpLabel);
+
+		m_fields->timeWarpField = TextInput::create(70, "");
+		m_fields->timeWarpField->setID("time-mod-field"_spr);
+		m_fields->timeWarpField->setPosition(m_timeWarpLabel->getPositionX() + 40, m_timeWarpLabel->getPositionY());
+		m_fields->timeWarpField->setCommonFilter(CommonFilter::Float);
+		m_fields->timeWarpField->setString(precisionParams ? fmt::format("{}", m_timeWarpMod) : fmt::format("{:.2f}", m_timeWarpMod));
+		m_fields->timeWarpField->setCallback([this](const std::string& str) {
+			auto result = utils::numFromString<float>(str);
+			if (!result.isOk()) return;
+			auto value = result.unwrap();
+			m_timeWarpMod = value;
+			updateTriggers(this, [value](GameObject* object) {
+				((EffectGameObject*) object)->m_timeWarpTimeMod = value;
+			});
+			m_timeWarpSlider->setValue(std::clamp((value - 0.1f) / 1.9f, 0.0f, 1.0f));
+		});
+		m_mainLayer->addChild(m_fields->timeWarpField);
+
+		return true;
+	};
+
+	void updateTimeWarpLabel() {
+		if (!precisionParams && !sliderInputs) return SetupTimeWarpPopup::updateTimeWarpLabel();
+		if (m_timeWarpLabel == nullptr || m_fields->timeWarpField == nullptr || m_fields->timeWarpField->getInputNode() == nullptr) return;
+
+		if (!sliderInputs) {
+			m_timeWarpLabel->setString(fmt::format("Opacity: {}", m_timeWarpMod).c_str());
+			return;
+		}
+		m_fields->timeWarpField->setString(precisionParams ? fmt::format("{}", m_timeWarpMod) : fmt::format("{:.2f}", m_timeWarpMod));
 	}
 };
 #include <Geode/modify/SetupRandTriggerPopup.hpp>
@@ -1124,3 +1190,14 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 		}
 	}
 };
+//disabled this part because it was buggy and caused crashes
+/*#include <Geode/modify/ConfigureHSVWidget.hpp>
+class $modify(PrecisionHSVWidget, ConfigureHSVWidget) {
+	bool init(ccHSVValue hsv, bool unused, bool addInputs) {
+		//honestly not sure why there isn't at least an option to configure this in game
+		//the code is already there, but the numeric input fields are specifically disabled
+		//on every instance of this widget except on the Edit Object screen
+		if (sliderInputs) addInputs = true;
+		return ConfigureHSVWidget::init(hsv, unused, addInputs);
+	}
+};*/

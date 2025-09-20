@@ -1,3 +1,7 @@
+# 0.1.9
+- Fixed a bug that caused the game to crash when entering the color picker menu in the particle trigger with Enable Slider Inputs
+- Made Enable Slider Inputs compatible with the TimeWarp trigger and the HSV screen
+
 # 0.1.8
 - Fixed a bug that caused the hold time and fade out time parameters of the pulse trigger to take on the value of the fade in time when opening the Edit Object menu
 
