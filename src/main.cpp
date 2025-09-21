@@ -967,10 +967,10 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 
 		if (m_fadeInInput != nullptr)
 			m_fadeInInput->setString(fmt::format("{}", m_fadeInTime));
-		//if (m_holdInput != nullptr)
-		//	m_holdInput->setString(fmt::format("{}", m_holdTime));
-		//if (m_fadeOutInput != nullptr)
-		//	m_fadeOutInput->setString(fmt::format("{}", m_fadeOutTime));
+		if (m_holdInput != nullptr)
+			m_holdInput->setString(fmt::format("{}", m_holdTime));
+		if (m_fadeOutInput != nullptr)
+			m_fadeOutInput->setString(fmt::format("{}", m_fadeOutTime));
 
 		m_disableTextDelegate = oldDisableTextDelegate;
 
@@ -990,18 +990,21 @@ class $modify(PrecisionPulsePopup, SetupPulsePopup) {
 				m_fadeInTime = value;
 				updateFadeInTime();
 				m_fadeInSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
+				break;
 			}
 			case 9: { //hold time
 				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_holdTime = value;
 				updateHoldTime();
 				m_holdSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
+				break;
 			}
 			case 10: { //fade out time
 				float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 				m_fadeOutTime = value;
 				updateFadeOutTime();
 				m_fadeOutSlider->setValue(std::clamp(float(value / 10.0), 0.0f, 1.0f));
+				break;
 			}
 			default: break;
 		}
@@ -1174,17 +1177,20 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 				m_groupID1 = value;
 				updateTargetID();
 				updateEditorLabel();
+				break;
 			}
 			case 5: { //target id 2
 				int value = utils::numFromString<int>(str).unwrapOr(0);
 				m_groupID2 = value;
 				updateTargetID2();
 				updateEditorLabel();
+				break;
 			}
 			case 4: { //chance
 				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_chancePercent = value;
 				updateChance();
+				break;
 			}
 			default: break;
 		}
