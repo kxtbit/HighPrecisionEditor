@@ -1,3 +1,10 @@
+# 0.1.11
+- Fixed a few issues with macOS compatibility, contributed by hiimjasmine00
+- Fixed a few bugs potentially causing issues with displaying values on macOS when Enable Slider Inputs is enabled but High Precision Trigger Parameters is not
+- Added a new setting "Miscellaneous UI Fixes" which rectifies some small UI problems (currently only affects the size of the fade time slider for the alpha trigger, disabled by default)
+- Changed the label in the TimeWarp trigger to correctly say "TimeMod" instead of "Opacity" with Enable Slider Inputs
+- Decreased the height of the opacity input field in the color trigger with Enable Slider Inputs to be more consistent with the rest of the UI
+
 # 0.1.10
 - Fixed a bug that caused some number inputs to affect the wrong sliders
 - Fixed a bug where high precision would not work properly on the hold time and fade out values of the pulse trigger

@@ -55,6 +55,7 @@ bool precisionScale = true;
 bool precisionParams = true;
 bool decimalMoveParams = true;
 bool sliderInputs = true;
+bool miscUIFixes = true;
 
 $execute {
 	precisionPosition = Mod::get()->getSettingValue<bool>("full-precision-object-position");
@@ -63,6 +64,7 @@ $execute {
 	precisionParams = Mod::get()->getSettingValue<bool>("full-precision-trigger-parameters");
 	decimalMoveParams = Mod::get()->getSettingValue<bool>("allow-decimal-move-parameters");
 	sliderInputs = Mod::get()->getSettingValue<bool>("enable-slider-inputs");
+	miscUIFixes = Mod::get()->getSettingValue<bool>("misc-ui-fixes");
 	listenForSettingChanges("full-precision-object-position", [](bool value) {
 		precisionPosition = value;
 	});
@@ -80,6 +82,9 @@ $execute {
 	});
 	listenForSettingChanges("enable-slider-inputs", [](bool value) {
 		sliderInputs = value;
+	});
+	listenForSettingChanges("misc-ui-fixes", [](bool value) {
+		miscUIFixes = value;
 	});
 }
 
@@ -896,7 +901,8 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		m_fields->newOpacityLabel->setID("opacity-label"_spr);
 		m_fields->opacityMenu->addChild(m_fields->newOpacityLabel);
 
-		m_fields->opacityField = TextInput::create(40, "");
+		m_fields->opacityField = TextInput::create(50, "");
+		m_fields->opacityField->setScale(0.8);
 		m_fields->opacityField->setID("opacity-field"_spr);
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
 		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
@@ -934,7 +940,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
 			return;
 		}
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 	}
 
 	void sliderChanged(CCObject* sender) {
@@ -947,7 +953,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
 			return;
 		}
-		m_fields->opacityField->setString(fmt::format("{}", m_opacity));
+		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 	}
 	#endif
 
@@ -1042,6 +1048,19 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		if (precisionParams && m_fadeTimeInput != nullptr)
 			m_fadeTimeInput->setString(fmt::format("{}", m_fadeTime));
 
+		if (miscUIFixes && m_fadeTimeSlider != nullptr
+				&& m_fadeTimeSlider->m_groove != nullptr
+				&& m_fadeTimeSlider->m_touchLogic != nullptr
+				&& m_fadeTimeSlider->m_touchLogic->m_thumb != nullptr) {
+			//make the fade time slider the same size as the opacity slider for consistency
+
+			float sliderValue = m_fadeTimeSlider->getValue();
+			m_fadeTimeSlider->m_groove->setScale(1.0);
+			m_fadeTimeSlider->m_touchLogic->m_length = 200.0;
+			m_fadeTimeSlider->m_touchLogic->m_thumb->setScale(1.0);
+			m_fadeTimeSlider->setValue(sliderValue);
+		}
+
 		if (!sliderInputs) return true;
 
 		m_opacityLabel->setOpacity(0);
@@ -1055,6 +1074,7 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 
 		m_fields->opacityField = TextInput::create(70, "");
 		m_fields->opacityField->setID("opacity-field"_spr);
+		m_fields->opacityField->setZOrder(-1); //make it show behind the slider
 		m_fields->opacityField->setPosition(m_fadeTimeInput->getPositionX(), m_opacityLabel->getPositionY());
 		m_fields->opacityField->setCommonFilter(CommonFilter::Float);
 		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
@@ -1085,12 +1105,13 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 		SetupOpacityPopup::sliderChanged(sender);
 
 		if ((!precisionParams && !sliderInputs) || sender->getTag() != 2) return;
-		if (m_opacityLabel == nullptr || m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
+		if (m_opacityLabel == nullptr) return;
 
 		if (!sliderInputs) {
 			m_opacityLabel->setString(fmt::format("Opacity: {}", m_opacity).c_str());
 			return;
 		}
+		if (m_fields->opacityField == nullptr || m_fields->opacityField->getInputNode() == nullptr) return;
 		m_fields->opacityField->setString(precisionParams ? fmt::format("{}", m_opacity) : fmt::format("{:.2f}", m_opacity));
 	}
 	#endif
@@ -1133,7 +1154,7 @@ class $modify(PrecisionTimeWarpPopup, SetupTimeWarpPopup) {
 
 		m_timeWarpLabel->setOpacity(0);
 
-		m_fields->newTimeWarpLabel = CCLabelBMFont::create("Opacity: ", "goldFont.fnt");
+		m_fields->newTimeWarpLabel = CCLabelBMFont::create("TimeMod: ", "goldFont.fnt");
 		m_fields->newTimeWarpLabel->setScale(0.7);
 		m_fields->newTimeWarpLabel->setPosition(m_timeWarpLabel->getPosition());
 		m_fields->newTimeWarpLabel->setAnchorPoint(ccp(1.0f, 0.5f));
