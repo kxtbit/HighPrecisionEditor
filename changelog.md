@@ -1,3 +1,9 @@
+# 0.1.12
+- Added support for high precision in the HSV editing widget
+- Fixed a bug in the normal game where the value from the Camera Offset move time slider would be saved without proper rounding, configurable by the new option "Miscellaneous Editor Fixes"
+- Added experimental support for text inputs in every instance of the HSV widget
+- Added an internal workaround for a conflict with NinKaz's Editor Utils that would cause the durations of Camera Offset triggers to be overwritten with -99999 when multi editing
+
 # 0.1.11
 - Fixed a few issues with macOS compatibility, contributed by hiimjasmine00
 - Fixed a few bugs potentially causing issues with displaying values on macOS when Enable Slider Inputs is enabled but High Precision Trigger Parameters is not

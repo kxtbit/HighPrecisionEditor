@@ -15,3 +15,5 @@ Considerations:
 
 ### Keep backups of your levels!
 This mod is still in its early stages and it is possible that something was missed in testing. Since this mod messes with the object save system in multiple ways, if something goes wrong, your level could be corrupted. I highly recommend using something like the mod Backups by HJfod to back up your saves and levels before and during use of this mod.
+
+Special thanks to hiimjasmine00 for code contributions relating to cross-platform support and to Alphalaneous and the rest of the Geode community for guidance with development.

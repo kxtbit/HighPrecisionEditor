@@ -55,7 +55,8 @@ bool precisionScale = true;
 bool precisionParams = true;
 bool decimalMoveParams = true;
 bool sliderInputs = true;
-bool miscUIFixes = true;
+bool miscEditorFixes = true;
+bool miscUIFixes = false;
 
 $execute {
 	precisionPosition = Mod::get()->getSettingValue<bool>("full-precision-object-position");
@@ -64,6 +65,7 @@ $execute {
 	precisionParams = Mod::get()->getSettingValue<bool>("full-precision-trigger-parameters");
 	decimalMoveParams = Mod::get()->getSettingValue<bool>("allow-decimal-move-parameters");
 	sliderInputs = Mod::get()->getSettingValue<bool>("enable-slider-inputs");
+	miscEditorFixes = Mod::get()->getSettingValue<bool>("misc-editor-fixes");
 	miscUIFixes = Mod::get()->getSettingValue<bool>("misc-ui-fixes");
 	listenForSettingChanges("full-precision-object-position", [](bool value) {
 		precisionPosition = value;
@@ -82,6 +84,9 @@ $execute {
 	});
 	listenForSettingChanges("enable-slider-inputs", [](bool value) {
 		sliderInputs = value;
+	});
+	listenForSettingChanges("misc-editor-fixes", [](bool value) {
+		miscEditorFixes = value;
 	});
 	listenForSettingChanges("misc-ui-fixes", [](bool value) {
 		miscUIFixes = value;
@@ -603,8 +608,8 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 	}
 
 	CCArray* createValueControlAdvanced(int property,
-										gd::string label,
-										cocos2d::CCPoint position,
+										gd::string label, // NOLINT(*-unnecessary-value-param)
+										cocos2d::CCPoint position, // NOLINT(*-unnecessary-value-param)
 										float scale,
 										bool noSlider,
 										InputValueType valueType,
@@ -636,6 +641,7 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 		switch (property) {
 			case 28:
 			case 29:
+			case 97:
 				//log::info("overrode {} to float input", label);
 				valueType = InputValueType::Float;
 				decimalPlaces = -1;
@@ -695,14 +701,14 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 
 		int property = param->getTag();
 		float value = ((SliderThumb*) param)->getValue();
-		//log::info("triggerSliderChanged: {}", value);
+		log::info("triggerSliderChanged: {}", value);
 
 		value = triggerValueFromSliderValue(property, value);
 		auto inputNode = (CCTextInputNode*) m_inputNodes->objectForKey(property);
-		if (inputNode != nullptr && inputNode->m_textField != nullptr) {
+		if (inputNode != nullptr) {
 			int places = inputNode->m_decimalPlaces;
 			if (places < 0) places = -places - 1;
-			//log::info("truncating to {} places", places);
+			log::info("truncating to {} places", places);
 
 			if (places < 1) {
 				value = (float) (int) value;
@@ -735,8 +741,31 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 			log::error("failed to set hook priority for SetupCameraOffsetTrigger::textChanged");
 		}
 	}
+
+	void fixedSliderChanged(CCObject* sender) {
+		float value = ((SliderThumb*) sender)->getValue() * 10.0f;
+		float roundedValue = std::roundf(value * 100.0f) / 100.0f;
+
+		bool oldDisableTextDelegate = m_disableTextDelegate;
+		m_disableTextDelegate = true;
+
+		m_moveTime = roundedValue;
+		updateDuration();
+
+		std::string displayValue = value == -99999.0f ? "Mixed" : fmt::format("{}", roundedValue);
+		m_moveTimeInput->setString(displayValue);
+
+		m_disableTextDelegate = oldDisableTextDelegate;
+	}
+
 	bool init(CameraTriggerGameObject* p0, CCArray* p1) {
 		if (!SetupCameraOffsetTrigger::init(p0, p1)) return false;
+
+		if (miscEditorFixes) {
+			//make the slider properly function with two decimal places instead of displaying two but saving all
+			m_moveTimeSlider->m_touchLogic->m_thumb->m_pfnSelector = menu_selector(PrecisionSetupCameraOffset::fixedSliderChanged);
+		}
+
 		if (!precisionParams) return true;
 
 		auto object = m_gameObject;
@@ -764,26 +793,30 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 
 		int type = inputNode->getTag();
 		float sliderValue;
+
+		log::info("textChanged fired on {} with {}", type, value);
 		Slider* slider;
 		switch (type) {
 			case 0: //X position
-				m_offsetX = value * 3.0;
+				m_offsetX = int(value * 3.0);
 				updateMoveCommandPosX();
 				sliderValue = std::clamp(float(value / 200.0 + 0.5), 0.0f, 1.0f);
 				slider = m_offsetXSlider;
 				break;
 			case 1: //Y position
-				m_offsetY = value * 3.0;
+				m_offsetY = int(value * 3.0);
 				updateMoveCommandPosY();
 				sliderValue = std::clamp(float(value / 200.0 + 0.5), 0.0f, 1.0f);
 				slider = m_offsetYSlider;
 				break;
-			default: //move time
+			case 3: //move time
+				if (value == -99999.0) return; //hacky fix for mixed values with NinKaz's Editor Utils
 				m_moveTime = value;
 				updateDuration();
 				sliderValue = std::clamp(float(value / 10.0), 0.0f, 1.0f);
 				slider = m_moveTimeSlider;
 				break;
+			default: return;
 		}
 		slider->setValue(sliderValue);
 	}
@@ -849,7 +882,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 				updateTargetGroupID2();
 				break;
 			}
-			default: { //duration (3)
+			case 3: { //duration (3)
 				float value = utils::numFromString<float>(str).unwrapOr(0);
 				m_moveTime = value;
 				updateDuration();
@@ -857,6 +890,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 				slider = m_moveTimeSlider;
 				break;
 			}
+			default: return;
 		}
 		if (slider != nullptr)
 			slider->setValue(sliderValue);
@@ -1247,14 +1281,146 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 		}
 	}
 };
-//disabled this part because it was buggy and caused crashes
-/*#include <Geode/modify/ConfigureHSVWidget.hpp>
+#include <Geode/modify/ConfigureHSVWidget.hpp>
 class $modify(PrecisionHSVWidget, ConfigureHSVWidget) {
+	static void onModify(auto& self) {
+		if (!self.setHookPriorityPre("ConfigureHSVWidget::init", Priority::Late)) {
+			log::error("failed to set hook priority for ConfigureHSVWidget::init");
+		}
+		if (!self.setHookPriorityPost("ConfigureHSVWidget::updateLabels", Priority::Late)) {
+			log::error("failed to set hook priority for ConfigureHSVWidget::updateLabels");
+		}
+	}
 	bool init(ccHSVValue hsv, bool unused, bool addInputs) {
 		//honestly not sure why there isn't at least an option to configure this in game
 		//the code is already there, but the numeric input fields are specifically disabled
 		//on every instance of this widget except on the Edit Object screen
 		if (sliderInputs) addInputs = true;
+
 		return ConfigureHSVWidget::init(hsv, unused, addInputs);
 	}
-};*/
+
+	void textChanged(CCTextInputNode* inputNode) override {
+		if (!precisionParams) return ConfigureHSVWidget::textChanged(inputNode);
+
+		float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
+		switch (inputNode->getTag()) {
+			case 1:
+				m_hsv.h = value;
+				break;
+			case 2:
+				m_hsv.s = value;
+				break;
+			case 3:
+				m_hsv.v = value;
+				break;
+			default: return ConfigureHSVWidget::textChanged(inputNode);
+		}
+		updateSliders();
+
+		//original textChanged function is missing this
+		//since the only place m_addInputs is normally true is for the Edit Object HSV menu,
+		//which doesn't have a delegate and instead just reads out the HSV values once when the menu is closed
+		if (m_delegate) m_delegate->hsvChanged(this);
+	}
+
+	void updateLabels() {
+		if (!precisionParams) return ConfigureHSVWidget::updateLabels();
+
+		auto hStr = fmt::format("{}", m_hsv.h);
+		auto sStr = fmt::format("{}", m_hsv.s);
+		auto vStr = fmt::format("{}", m_hsv.v);
+
+		if (m_addInputs) {
+			reinterpret_cast<CCTextInputNode*>(m_inputs->objectForKey(1))->setString(hStr);
+			reinterpret_cast<CCTextInputNode*>(m_inputs->objectForKey(2))->setString(sStr);
+			reinterpret_cast<CCTextInputNode*>(m_inputs->objectForKey(3))->setString(vStr);
+		} else {
+			m_hueLabel->setString(hStr.c_str());
+			m_saturationLabel->setString(sStr.c_str());
+			m_brightnessLabel->setString(vStr.c_str());
+		}
+	}
+};
+#include <Geode/modify/HSVLiveOverlay.hpp>
+class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
+	//incredibly hacky workaround to make sure inputs get sent to the text inputs instead of the editor
+	class HSVTouchBlocker : public CCLayer {
+		ConfigureHSVWidget* m_widget = nullptr;
+
+		bool init(ConfigureHSVWidget* widget) {
+			if (!CCLayer::init()) return false;
+
+			m_widget = widget;
+			setTouchEnabled(true);
+			return true;
+		}
+
+		void registerWithTouchDispatcher() override {
+			CCTouchDispatcher::get()->addTargetedDelegate(this, 0, true);
+		}
+		bool ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent) override {
+			if (!m_widget) return false;
+
+			auto touchPos = pTouch->getLocation();
+			//log::info("touch at {} {}", touchPos.x, touchPos.y);
+			unsigned int count = m_widget->m_inputs->count();
+			for (unsigned int i = 0; i < count; i++) {
+				if (auto input = typeinfo_cast<CCTextInputNode*>(m_widget->m_inputs->objectForKey(i))) {
+					auto pos = m_widget->convertToWorldSpace(input->getPosition());
+					auto size = m_widget->convertToWorldSpace(input->getPosition() + input->getContentSize()) - pos;
+					//log::info("check with {} {}, size {} {}", pos.x, pos.y, size.x, size.y);
+
+					if (abs(touchPos.x - pos.x) < size.x && abs(touchPos.y - pos.y) < size.y)
+						return true;
+				}
+			}
+			return false;
+		}
+	public:
+		static HSVTouchBlocker* create(ConfigureHSVWidget* widget) {
+			// ReSharper disable once CppDFAMemoryLeak
+			auto ret = new HSVTouchBlocker();
+			if (ret->init(widget)) {
+				ret->autorelease();
+				return ret;
+			}
+			delete ret;
+			return nullptr;
+		}
+	};
+
+	static void onModify(auto& self) {
+		if (!self.setHookPriorityPost("HSVLiveOverlay::init", Priority::Late)) {
+			log::error("failed to set hook priority for HSVLiveOverlay::init");
+		}
+	}
+
+	bool init(GameObject* targetObject, CCArray* targetObjects) {
+		if (!HSVLiveOverlay::init(targetObject, targetObjects)) return false;
+		if (!sliderInputs) return true;
+
+		if (auto newLayer = HSVTouchBlocker::create(m_widget)) {
+			newLayer->setID("hsv-touch-blocker"_spr);
+			addChild(newLayer);
+		}
+		CCTouchDispatcher::get()->addTargetedDelegate(m_mainLayer, 0, true);
+
+		unsigned int count = m_widget->m_inputs->count();
+		for (unsigned int i = 0; i < count; i++) {
+			//log::info("{}", i);
+			if (auto input = typeinfo_cast<CCTextInputNode*>(m_widget->m_inputs->objectForKey(i))) {
+				//another incredibly hacky workaround, this time to make the text fields accept inputs
+				//because they don't normally for some reason i am probably too dumb to understand
+
+				//setting this exact user object to true tricks Geode into thinking this is a geode::TextInput
+				//which handles input logic differently and in a more reliable way (i think)
+				//there is probably a better way to make this text input field detect clicks but i guess this works
+				input->setUserObject("fix-text-input", CCBool::create(true));
+			}
+		}
+
+		// ReSharper disable once CppDFAMemoryLeak
+		return true;
+	}
+};

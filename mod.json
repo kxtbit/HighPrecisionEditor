@@ -8,7 +8,7 @@
 	},
 	"id": "kxtbit.high_precision_editor",
 	"name": "High Precision Editor",
-	"version": "v0.1.11",
+	"version": "v0.1.12",
 	"developer": "kxtbit",
 	"description": "Changes the GD editor logic to save certain values at full precision",
 	"settings": {
@@ -45,6 +45,12 @@
 		"enable-slider-inputs": {
 			"name": "Enable Slider Inputs",
 			"description": "Adds text inputs to some trigger properties, like the opacity of color and alpha triggers",
+			"type": "bool",
+			"default": true
+		},
+		"misc-editor-fixes": {
+			"name": "Miscellaneous Editor Fixes",
+			"description": "Fixes some bugs with the editor relating to numeric precision - not required for the rest of the mod, but recommended",
 			"type": "bool",
 			"default": true
 		},
