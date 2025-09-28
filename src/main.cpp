@@ -913,6 +913,22 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		TextInput* opacityField;
 	};
 
+	void fixedSliderChanged(CCObject* sender) {
+		float value = ((SliderThumb*) sender)->getValue() * 10.0f;
+		float roundedValue = std::roundf(value * 100.0f) / 100.0f;
+
+		bool oldDisableTextDelegate = m_disableTextDelegate;
+		m_disableTextDelegate = true;
+
+		m_fadeTime = roundedValue;
+		updateDuration();
+
+		std::string displayValue = value == -99999.0f ? "Mixed" : fmt::format("{}", roundedValue);
+		m_fadeTimeInput->setString(displayValue);
+
+		m_disableTextDelegate = oldDisableTextDelegate;
+	}
+
 	bool init(EffectGameObject* p0, CCArray* p1, ColorAction* p2) {
 		if (!ColorSelectPopup::init(p0, p1, p2)) return false;
 
@@ -952,6 +968,11 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 		m_fields->opacityMenu->addChild(m_fields->opacityField);
 
 		m_fields->opacityMenu->updateLayout();
+
+		if (miscEditorFixes) {
+			//make the slider properly function with two decimal places instead of displaying two but saving all
+			m_fadeTimeSlider->m_touchLogic->m_thumb->m_pfnSelector = menu_selector(PrecisionColorSelect::fixedSliderChanged);
+		}
 
 		return true;
 	}
@@ -1305,6 +1326,7 @@ class $modify(PrecisionHSVWidget, ConfigureHSVWidget) {
 
 	void textChanged(CCTextInputNode* inputNode) override {
 		if (!precisionParams) return ConfigureHSVWidget::textChanged(inputNode);
+		if (m_updating) return;
 
 		float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 		switch (inputNode->getTag()) {
@@ -1319,6 +1341,9 @@ class $modify(PrecisionHSVWidget, ConfigureHSVWidget) {
 				break;
 			default: return ConfigureHSVWidget::textChanged(inputNode);
 		}
+		//this fixes a segfault executing 0x0 when exiting the color trigger menu for some reason
+		//no idea why but it works i guess, i think it's the check for m_selected
+		if (!m_hueSlider || !m_saturationSlider || !m_brightnessSlider || !m_bVisible || !inputNode->m_selected) return;
 		updateSliders();
 
 		//original textChanged function is missing this
