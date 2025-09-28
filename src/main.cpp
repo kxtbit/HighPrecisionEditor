@@ -701,14 +701,14 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 
 		int property = param->getTag();
 		float value = ((SliderThumb*) param)->getValue();
-		log::info("triggerSliderChanged: {}", value);
+		//log::info("triggerSliderChanged: {}", value);
 
 		value = triggerValueFromSliderValue(property, value);
 		auto inputNode = (CCTextInputNode*) m_inputNodes->objectForKey(property);
 		if (inputNode != nullptr) {
 			int places = inputNode->m_decimalPlaces;
 			if (places < 0) places = -places - 1;
-			log::info("truncating to {} places", places);
+			//log::info("truncating to {} places", places);
 
 			if (places < 1) {
 				value = (float) (int) value;
