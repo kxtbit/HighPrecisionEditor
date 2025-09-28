@@ -1,3 +1,6 @@
+# 0.1.14
+- Removed some unnecessary debug logs
+
 # 0.1.13
 - Fixed a bug where opening the live HSV editing popup would prevent clicks from registering any more in the editor
 - Added an internal workaround for a conflict with NinKaz's Editor Utils that would cause mixed values of Follow triggers to be overwritten with -99999 when multi editing
