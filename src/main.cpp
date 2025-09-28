@@ -855,6 +855,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 		switch (type) {
 			case 0: { //X modifier
 				float value = utils::numFromString<float>(str).unwrapOr(0);
+				if (value == -99999.0) return; //hacky fix for mixed values with NinKaz's Editor Utils
 				m_xMod = value;
 				updateXMod();
 				sliderValue = std::clamp(float(value / 2.0 + 0.5), 0.0f, 1.0f);
@@ -863,6 +864,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 			}
 			case 1: { //Y modifier
 				float value = utils::numFromString<float>(str).unwrapOr(0);
+				if (value == -99999.0) return; //hacky fix for mixed values with NinKaz's Editor Utils
 				m_yMod = value;
 				updateYMod();
 				sliderValue = std::clamp(float(value / 2.0 + 0.5), 0.0f, 1.0f);
@@ -884,6 +886,7 @@ class $modify(PrecisionFollowCommandLayer, GJFollowCommandLayer) {
 			}
 			case 3: { //duration (3)
 				float value = utils::numFromString<float>(str).unwrapOr(0);
+				if (value == -99999.0) return; //hacky fix for mixed values with NinKaz's Editor Utils
 				m_moveTime = value;
 				updateDuration();
 				sliderValue = std::clamp(float(value / 10.0), 0.0f, 1.0f);
@@ -1404,7 +1407,6 @@ class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 			newLayer->setID("hsv-touch-blocker"_spr);
 			addChild(newLayer);
 		}
-		CCTouchDispatcher::get()->addTargetedDelegate(m_mainLayer, 0, true);
 
 		unsigned int count = m_widget->m_inputs->count();
 		for (unsigned int i = 0; i < count; i++) {

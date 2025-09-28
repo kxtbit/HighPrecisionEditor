@@ -1,3 +1,7 @@
+# 0.1.13
+- Fixed a bug where opening the live HSV editing popup would prevent clicks from registering any more in the editor
+- Added an internal workaround for a conflict with NinKaz's Editor Utils that would cause mixed values of Follow triggers to be overwritten with -99999 when multi editing
+
 # 0.1.12
 - Added support for high precision in the HSV editing widget
 - Fixed a bug in the normal game where the value from the Camera Offset move time slider would be saved without proper rounding, configurable by the new option "Miscellaneous Editor Fixes"
