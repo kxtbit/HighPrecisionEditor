@@ -721,6 +721,26 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 		updateInputNode(property, value);
 		m_disableTextDelegate = oldDisableTextDelegate;
 	}
+
+	void updateEaseRateLabel() {
+		if (!precisionParams) return SetupTriggerPopup::updateEaseRateLabel();
+
+		m_easingRateLabel->setString(fmt::format("{}", m_easingRate).c_str());
+	}
+
+	void valuePopupClosed(ConfigureValuePopup* popup, float value) override {
+		if (!precisionParams) return SetupTriggerPopup::valuePopupClosed(popup, value);
+
+		int property = popup->getTag();
+		if (property == 85) { //easing rate
+			m_easingRate = value;
+			valueChanged(85, value);
+			updateEaseRateLabel();
+		} else {
+			valueChanged(property, value);
+			updateCustomEaseRateLabel(property, value);
+		}
+	}
 };
 void updateTriggers(SetupTriggerPopup* popup, auto updater) {
 	if (popup->m_gameObject == nullptr) {
@@ -1303,6 +1323,41 @@ class $modify(PrecisionRandTriggerPopup, SetupRandTriggerPopup) {
 			}
 			default: break;
 		}
+	}
+};
+#include <Geode/modify/ConfigureValuePopup.hpp>
+class $modify(PrecisionValuePopup, ConfigureValuePopup) {
+	void updateTextInputLabel() {
+		if (!precisionParams) return ConfigureValuePopup::updateTextInputLabel();
+
+		bool oldDisableTextDelegate = m_disableTextDelegate;
+		m_disableTextDelegate = true;
+
+		m_input->setString(fmt::format("{}", m_value));
+
+		m_disableTextDelegate = oldDisableTextDelegate;
+	}
+	void sliderChanged(CCObject* sender) {
+		if (!precisionParams) return ConfigureValuePopup::sliderChanged(sender);
+
+		m_enableDelegate = true; //flag that a value has changed and needs to be saved
+		float sliderValue = reinterpret_cast<SliderThumb*>(sender)->getValue();
+		float value = sliderValue * (m_maximum - m_minimum) + m_minimum;
+		//slider value needs to be rounded here instead
+		//because it is no longer rounded on save
+		value = std::roundf(value * 100.0f) / 100.0f;
+		m_value = value;
+		updateTextInputLabel();
+	}
+	void textChanged(CCTextInputNode* inputNode) override {
+		if (!precisionParams) return ConfigureValuePopup::textChanged(inputNode);
+		if (m_disableTextDelegate) return;
+
+		m_enableDelegate = true; //flag that a value has changed and needs to be saved
+		float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
+		float sliderValue = std::clamp((value - m_minimum) / (m_maximum - m_minimum), 0.0f, 1.0f);
+		m_slider->setValue(sliderValue);
+		m_value = value;
 	}
 };
 #include <Geode/modify/ConfigureHSVWidget.hpp>
