@@ -1,6 +1,7 @@
 # 0.1.15
 - Fixed a bug that would sometimes cause the game to crash when exiting a color trigger menu
 - Fixed a bug in the normal game where the value from the Color trigger fade time slider would be saved without proper rounding, configurable by the new option "Miscellaneous Editor Fixes"
+- Fixed a bug that would cause the brightness HSV input to not function properly in the live HSV overlay
 - Added support for high precision in the easing rate fields of several triggers
 
 # 0.1.14

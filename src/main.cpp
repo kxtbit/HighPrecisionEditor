@@ -1447,9 +1447,12 @@ class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 
 			auto touchPos = pTouch->getLocation();
 			//log::info("touch at {} {}", touchPos.x, touchPos.y);
+			auto keys = m_widget->m_inputs->allKeys();
 			unsigned int count = m_widget->m_inputs->count();
 			for (unsigned int i = 0; i < count; i++) {
-				if (auto input = typeinfo_cast<CCTextInputNode*>(m_widget->m_inputs->objectForKey(i))) {
+				//log::info("{}", i);
+				if (auto input = typeinfo_cast<CCTextInputNode*>(
+					m_widget->m_inputs->objectForKey(((CCInteger*) keys->objectAtIndex(i))->getValue()))) {
 					auto pos = m_widget->convertToWorldSpace(input->getPosition());
 					auto size = m_widget->convertToWorldSpace(input->getPosition() + input->getContentSize()) - pos;
 					//log::info("check with {} {}, size {} {}", pos.x, pos.y, size.x, size.y);
@@ -1488,10 +1491,12 @@ class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 			addChild(newLayer);
 		}
 
-		unsigned int count = m_widget->m_inputs->count();
+		auto keys = m_widget->m_inputs->allKeys();
+		unsigned int count = keys->count();
 		for (unsigned int i = 0; i < count; i++) {
 			//log::info("{}", i);
-			if (auto input = typeinfo_cast<CCTextInputNode*>(m_widget->m_inputs->objectForKey(i))) {
+			if (auto input = typeinfo_cast<CCTextInputNode*>(
+				m_widget->m_inputs->objectForKey(((CCInteger*) keys->objectAtIndex(i))->getValue()))) {
 				//another incredibly hacky workaround, this time to make the text fields accept inputs
 				//because they don't normally for some reason i am probably too dumb to understand
 
