@@ -1,3 +1,6 @@
+# 0.1.16
+- Fixed a bug that would cause the editor to crash when editing a color channel with Miscellaneous Editor Fixes enabled
+
 # 0.1.15
 - Fixed a bug that would sometimes cause the game to crash when exiting a color trigger menu
 - Fixed a bug in the normal game where the value from the Color trigger fade time slider would be saved without proper rounding, configurable by the new option "Miscellaneous Editor Fixes"

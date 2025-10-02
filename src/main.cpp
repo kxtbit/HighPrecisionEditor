@@ -989,7 +989,7 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 
 		m_fields->opacityMenu->updateLayout();
 
-		if (miscEditorFixes) {
+		if (miscEditorFixes && m_fadeTimeSlider != nullptr) {
 			//make the slider properly function with two decimal places instead of displaying two but saving all
 			m_fadeTimeSlider->m_touchLogic->m_thumb->m_pfnSelector = menu_selector(PrecisionColorSelect::fixedSliderChanged);
 		}

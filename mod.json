@@ -8,7 +8,7 @@
 	},
 	"id": "kxtbit.high_precision_editor",
 	"name": "High Precision Editor",
-	"version": "v0.1.15",
+	"version": "v0.1.16",
 	"developer": "kxtbit",
 	"description": "Changes the GD editor logic to save certain values at full precision",
 	"tags": [
