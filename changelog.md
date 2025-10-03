@@ -1,3 +1,6 @@
+# 0.1.17
+- Removed some more unnecessary debug logs
+
 # 0.1.16
 - Fixed a bug that would cause the editor to crash when editing a color channel with Miscellaneous Editor Fixes enabled
 

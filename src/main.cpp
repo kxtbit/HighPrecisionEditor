@@ -814,7 +814,7 @@ class $modify(PrecisionSetupCameraOffset, SetupCameraOffsetTrigger) {
 		int type = inputNode->getTag();
 		float sliderValue;
 
-		log::info("textChanged fired on {} with {}", type, value);
+		//log::info("textChanged fired on {} with {}", type, value);
 		Slider* slider;
 		switch (type) {
 			case 0: //X position
