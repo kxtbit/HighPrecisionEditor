@@ -67,28 +67,28 @@ $execute {
 	sliderInputs = Mod::get()->getSettingValue<bool>("enable-slider-inputs");
 	miscEditorFixes = Mod::get()->getSettingValue<bool>("misc-editor-fixes");
 	miscUIFixes = Mod::get()->getSettingValue<bool>("misc-ui-fixes");
-	listenForSettingChanges("full-precision-object-position", [](bool value) {
+	listenForSettingChanges<bool>("full-precision-object-position", [](bool value) {
 		precisionPosition = value;
 	});
-	listenForSettingChanges("full-precision-object-rotation", [](bool value) {
+	listenForSettingChanges<bool>("full-precision-object-rotation", [](bool value) {
 		precisionRotation = value;
 	});
-	listenForSettingChanges("full-precision-object-scale", [](bool value) {
+	listenForSettingChanges<bool>("full-precision-object-scale", [](bool value) {
 		precisionScale = value;
 	});
-	listenForSettingChanges("full-precision-trigger-parameters", [](bool value) {
+	listenForSettingChanges<bool>("full-precision-trigger-parameters", [](bool value) {
 		precisionParams = value;
 	});
-	listenForSettingChanges("allow-decimal-move-parameters", [](bool value) {
+	listenForSettingChanges<bool>("allow-decimal-move-parameters", [](bool value) {
 		decimalMoveParams = value;
 	});
-	listenForSettingChanges("enable-slider-inputs", [](bool value) {
+	listenForSettingChanges<bool>("enable-slider-inputs", [](bool value) {
 		sliderInputs = value;
 	});
-	listenForSettingChanges("misc-editor-fixes", [](bool value) {
+	listenForSettingChanges<bool>("misc-editor-fixes", [](bool value) {
 		miscEditorFixes = value;
 	});
-	listenForSettingChanges("misc-ui-fixes", [](bool value) {
+	listenForSettingChanges<bool>("misc-ui-fixes", [](bool value) {
 		miscUIFixes = value;
 	});
 }
