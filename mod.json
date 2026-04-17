@@ -1,5 +1,5 @@
 {
-	"geode": "5.3.0",
+	"geode": "5.6.1",
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
@@ -8,7 +8,7 @@
 	},
 	"id": "kxtbit.high_precision_editor",
 	"name": "High Precision Editor",
-	"version": "v0.1.18",
+	"version": "v0.1.2",
 	"developer": "kxtbit",
 	"description": "Changes the GD editor logic to save certain values at full precision",
 	"tags": [
@@ -51,6 +51,12 @@
 			"description": "Adds text inputs to some trigger properties, like the opacity of color and alpha triggers",
 			"type": "bool",
 			"default": true
+		},
+		"fixed-playtest-reset": {
+			"name": "Fixed Playtest Reset",
+			"description": "Prevents objects horizontally locked to the player from drifting out of place when ending a playtest. Experimental; do not use without backups",
+			"type": "bool",
+			"default": false
 		},
 		"misc-editor-fixes": {
 			"name": "Miscellaneous Editor Fixes",

@@ -55,6 +55,7 @@ bool precisionScale = true;
 bool precisionParams = true;
 bool decimalMoveParams = true;
 bool sliderInputs = true;
+bool fixedPlaytestReset = false;
 bool miscEditorFixes = true;
 bool miscUIFixes = false;
 
@@ -65,6 +66,7 @@ $execute {
 	precisionParams = Mod::get()->getSettingValue<bool>("full-precision-trigger-parameters");
 	decimalMoveParams = Mod::get()->getSettingValue<bool>("allow-decimal-move-parameters");
 	sliderInputs = Mod::get()->getSettingValue<bool>("enable-slider-inputs");
+	fixedPlaytestReset = Mod::get()->getSettingValue<bool>("fixed-playtest-reset");
 	miscEditorFixes = Mod::get()->getSettingValue<bool>("misc-editor-fixes");
 	miscUIFixes = Mod::get()->getSettingValue<bool>("misc-ui-fixes");
 	listenForSettingChanges<bool>("full-precision-object-position", [](bool value) {
@@ -85,6 +87,9 @@ $execute {
 	listenForSettingChanges<bool>("enable-slider-inputs", [](bool value) {
 		sliderInputs = value;
 	});
+	listenForSettingChanges<bool>("fixed-playtest-reset", [](bool value) {
+		fixedPlaytestReset = value;
+	});
 	listenForSettingChanges<bool>("misc-editor-fixes", [](bool value) {
 		miscEditorFixes = value;
 	});
@@ -95,6 +100,10 @@ $execute {
 
 #include <Geode/modify/GameObject.hpp>
 class $modify(PrecisionGameObject, GameObject) {
+	struct Fields {
+		bool hasRecordedPosition = false;
+		CCPoint recordedPosition;
+	};
 	gd::string getSaveString(GJBaseGameLayer* layer) override {
 		gd::string save = GameObject::getSaveString(layer);
 		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
@@ -576,6 +585,35 @@ class $modify(PrecisionForceBlock, ForceBlockGameObject) {
 	}
 };
 
+#include <Geode/modify/LevelEditorLayer.hpp>
+class $modify(PrecisionEditorLayer, LevelEditorLayer) {
+	$override
+	void onPlaytest() {
+		if (fixedPlaytestReset) {
+			for (GameObject* object : CCArrayExt<GameObject>(m_objects)) {
+				auto p_object = static_cast<PrecisionGameObject*>(object); // NOLINT(*-pro-type-static-cast-downcast)
+				p_object->m_fields->recordedPosition = p_object->getPosition();
+				p_object->m_fields->hasRecordedPosition = true;
+			}
+		}
+		return LevelEditorLayer::onPlaytest();
+	}
+	$override
+	void onStopPlaytest() {
+		LevelEditorLayer::onStopPlaytest();
+		if (fixedPlaytestReset) {
+			for (GameObject* object : CCArrayExt<GameObject>(m_objects)) {
+				auto p_object = static_cast<PrecisionGameObject*>(object); // NOLINT(*-pro-type-static-cast-downcast)
+				if (p_object->m_fields->hasRecordedPosition) {
+					p_object->m_fields->hasRecordedPosition = false;
+					//probably should do removeFromSection and addToSection here but the movement should be tiny anyway
+					p_object->setPosition(p_object->m_fields->recordedPosition);
+				}
+			}
+		}
+	}
+};
+
 #include <Geode/modify/SetupTriggerPopup.hpp>
 class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 	static void onModify(auto& self) {
@@ -952,8 +990,11 @@ class $modify(PrecisionColorSelect, ColorSelectPopup) {
 	bool init(EffectGameObject* p0, CCArray* p1, ColorAction* p2) {
 		if (!ColorSelectPopup::init(p0, p1, p2)) return false;
 
-		if (precisionParams && m_fadeTimeInput != nullptr)
+		if (precisionParams && m_fadeTimeInput != nullptr) {
+			m_disableTextDelegate = true;
 			m_fadeTimeInput->setString(fmt::format("{}", m_fadeTime));
+			m_disableTextDelegate = false;
+		}
 
 		if (!sliderInputs) return true;
 
@@ -1215,8 +1256,8 @@ class $modify(PrecisionOpacityPopup, SetupOpacityPopup) {
 #include <Geode/modify/SetupTimeWarpPopup.hpp>
 class $modify(PrecisionTimeWarpPopup, SetupTimeWarpPopup) {
 	static void onModify(auto& self) {
-		if (!self.setHookPriorityPost("SetupOpacityPopup::updateTimeWarpLabel", Priority::Late)) {
-			log::error("failed to set hook priority for SetupOpacityPopup::updateTimeWarpLabel");
+		if (!self.setHookPriorityPost("SetupTimeWarpPopup::updateTimeWarpLabel", Priority::Late)) {
+			log::error("failed to set hook priority for SetupTimeWarpPopup::updateTimeWarpLabel");
 		}
 	}
 
@@ -1427,54 +1468,6 @@ class $modify(PrecisionHSVWidget, ConfigureHSVWidget) {
 };
 #include <Geode/modify/HSVLiveOverlay.hpp>
 class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
-	//incredibly hacky workaround to make sure inputs get sent to the text inputs instead of the editor
-	class HSVTouchBlocker : public CCLayer {
-		ConfigureHSVWidget* m_widget = nullptr;
-
-		bool init(ConfigureHSVWidget* widget) {
-			if (!CCLayer::init()) return false;
-
-			m_widget = widget;
-			setTouchEnabled(true);
-			return true;
-		}
-
-		void registerWithTouchDispatcher() override {
-			CCTouchDispatcher::get()->addTargetedDelegate(this, 0, true);
-		}
-		bool ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent) override {
-			if (!m_widget) return false;
-
-			auto touchPos = pTouch->getLocation();
-			//log::info("touch at {} {}", touchPos.x, touchPos.y);
-			auto keys = m_widget->m_inputs->allKeys();
-			unsigned int count = m_widget->m_inputs->count();
-			for (unsigned int i = 0; i < count; i++) {
-				//log::info("{}", i);
-				if (auto input = typeinfo_cast<CCTextInputNode*>(
-					m_widget->m_inputs->objectForKey(((CCInteger*) keys->objectAtIndex(i))->getValue()))) {
-					auto pos = m_widget->convertToWorldSpace(input->getPosition());
-					auto size = m_widget->convertToWorldSpace(input->getPosition() + input->getContentSize()) - pos;
-					//log::info("check with {} {}, size {} {}", pos.x, pos.y, size.x, size.y);
-
-					if (abs(touchPos.x - pos.x) < size.x && abs(touchPos.y - pos.y) < size.y)
-						return true;
-				}
-			}
-			return false;
-		}
-	public:
-		static HSVTouchBlocker* create(ConfigureHSVWidget* widget) {
-			// ReSharper disable once CppDFAMemoryLeak
-			auto ret = new HSVTouchBlocker();
-			if (ret->init(widget)) {
-				ret->autorelease();
-				return ret;
-			}
-			delete ret;
-			return nullptr;
-		}
-	};
 
 	static void onModify(auto& self) {
 		if (!self.setHookPriorityPost("HSVLiveOverlay::init", Priority::Late)) {
@@ -1485,11 +1478,6 @@ class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 	bool init(GameObject* targetObject, CCArray* targetObjects) {
 		if (!HSVLiveOverlay::init(targetObject, targetObjects)) return false;
 		if (!sliderInputs) return true;
-
-		if (auto newLayer = HSVTouchBlocker::create(m_widget)) {
-			newLayer->setID("hsv-touch-blocker"_spr);
-			addChild(newLayer);
-		}
 
 		auto keys = m_widget->m_inputs->allKeys();
 		unsigned int count = keys->count();
