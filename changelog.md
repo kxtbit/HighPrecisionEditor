@@ -1,3 +1,11 @@
+# 0.1.20
+- Added an experimental setting to make objects return to their original place exactly after ending a playtest
+- Fixed a bug that would cause mixed fade times in color triggers to reset to 0 when editing
+- Fixed the number inputs on the HSV overlay, should hopefully fix the crashing issue as well
+
+# 0.1.18
+- Updated the mod to Geode 5.3.0 and Geometry Dash 2.2081, courtesy of @peeetergriffin
+
 # 0.1.17
 - Removed some more unnecessary debug logs
 
