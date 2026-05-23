@@ -1374,7 +1374,8 @@ class $modify(PrecisionValuePopup, ConfigureValuePopup) {
 		bool oldDisableTextDelegate = m_disableTextDelegate;
 		m_disableTextDelegate = true;
 
-		m_input->setString(fmt::format("{}", m_value));
+		if (m_input != nullptr)
+			m_input->setString(fmt::format("{}", m_value));
 
 		m_disableTextDelegate = oldDisableTextDelegate;
 	}
@@ -1397,7 +1398,8 @@ class $modify(PrecisionValuePopup, ConfigureValuePopup) {
 		m_enableDelegate = true; //flag that a value has changed and needs to be saved
 		float value = utils::numFromString<float>(inputNode->getString()).unwrapOr(0);
 		float sliderValue = std::clamp((value - m_minimum) / (m_maximum - m_minimum), 0.0f, 1.0f);
-		m_slider->setValue(sliderValue);
+		if (m_slider != nullptr)
+			m_slider->setValue(sliderValue);
 		m_value = value;
 	}
 };

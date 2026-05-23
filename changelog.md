@@ -1,3 +1,6 @@
+# 0.1.21
+- Fixed a bug where typing a number into a value popup without a slider with high precision parameters enabled would crash the game
+
 # 0.1.20
 - Added an experimental setting to make objects return to their original place exactly after ending a playtest
 - Fixed a bug that would cause mixed fade times in color triggers to reset to 0 when editing
