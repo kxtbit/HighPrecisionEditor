@@ -584,6 +584,65 @@ class $modify(PrecisionForceBlock, ForceBlockGameObject) {
 		});
 	}
 };
+#include <Geode/modify/EnterEffectObject.hpp>
+class $modify(PrecisionEnterEffect, EnterEffectObject) {
+	gd::string getSaveString(GJBaseGameLayer* layer) override {
+		gd::string save = EnterEffectObject::getSaveString(layer);
+		if (!precisionParams) return save;
+
+		return patchSaveString(save, this, [](CCObject* rawSelf, const int key, std::string orig) {
+			auto self = (PrecisionEnterEffect*) rawSelf;
+			switch (key) {
+				//area triggers and enter effect triggers
+				//these triggers seemingly do not use EffectGameObject::easingRate
+				//they have their own values for both in and out
+				case 243:
+					return fmt::format("{}", self->m_easingInRate);
+				case 249:
+					return fmt::format("{}", self->m_easingOutRate);
+
+				case 233:
+					return fmt::format("{}", self->m_areaScaleX);
+				case 234:
+					return fmt::format("{}", self->m_areaScaleXVariance);
+				case 235:
+					return fmt::format("{}", self->m_areaScaleY);
+				case 236:
+					return fmt::format("{}", self->m_areaScaleYVariance);
+				case 270:
+					return fmt::format("{}", self->m_areaRotation);
+				case 271:
+					return fmt::format("{}", self->m_areaRotationVariance);
+				case 275:
+					return fmt::format("{}", self->m_toOpacity);
+				case 286:
+					return fmt::format("{}", self->m_fromOpacity);
+
+				case 263:
+					return fmt::format("{}", self->m_modFront);
+				case 264:
+					return fmt::format("{}", self->m_modBack);
+				case 282:
+					return fmt::format("{}", self->m_deadzone);
+				case 265:
+					return fmt::format("{}", self->m_areaTint);
+				case 288:
+					return fmt::format("{}", self->m_relativeFade);
+
+				case 285: //what does this even do???
+					return fmt::format("{}", self->m_property285);
+
+				//unfortunately most of the properties for these triggers are integer-only
+				//so there is no way to do fractional movements like with the move trigger
+				//however, they ARE internally stored in small step units (1/30 of a block)
+				//the UI is just hardcoded to always display in 1/10 of a block normally
+
+				default:
+					return orig;
+			}
+		});
+	}
+};
 
 #include <Geode/modify/LevelEditorLayer.hpp>
 class $modify(PrecisionEditorLayer, LevelEditorLayer) {
@@ -660,34 +719,46 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 										GJInputStyle inputStyle,
 										int decimalPlaces,
 										bool allowDisable) {
-		if (!decimalMoveParams) return SetupTriggerPopup::createValueControlAdvanced(property,
-																				   label,
-																				   position,
-																				   scale,
-																				   noSlider,
-																				   valueType,
-																				   length,
-																				   arrows,
-																				   sliderMin,
-																				   sliderMax,
-																				   page,
-																				   group,
-																				   inputStyle,
-																				   decimalPlaces,
-																				   allowDisable);
-
 		switch (property) {
+			//move trigger
 			case 28:
 			case 29:
 			case 97:
+				if (!decimalMoveParams) break;
 				//log::info("overrode {} to float input", label);
 				valueType = InputValueType::Float;
 				decimalPlaces = -1;
 				break;
+
+			//area triggers
+			case 218:
+			case 219:
+			case 220:
+			case 221:
+			case 222:
+			case 223:
+			//case 231:
+			//case 232:
+			case 233:
+			case 234:
+			case 235:
+			case 236:
+			case 237:
+			case 238:
+			case 239:
+			case 240:
+			case 252:
+			case 253:
+				if (!precisionParams) break;
+				valueType = InputValueType::Float;
+				//this is a hack, this value doesn't mean anything
+				//it just serves as a marker that the number needs to round to the nearest third
+				decimalPlaces = -2;
+				break;
 			default: break;
 		}
 		return SetupTriggerPopup::createValueControlAdvanced(property,
-															 label,
+															 std::move(label),
 															 position,
 															 scale,
 															 noSlider,
@@ -702,15 +773,20 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 															 decimalPlaces,
 															 allowDisable);
 	}
-	#ifndef GEODE_IS_IOS
-	float getTruncatedValue(float value, int decimalPlaces) {
+	float getTruncatedValueHook(float value, int decimalPlaces) {
 		if (!precisionParams) return SetupTriggerPopup::getTruncatedValue(value, std::abs(decimalPlaces));
 
-		if (decimalPlaces != 0) {
+		if (decimalPlaces == -2) {
+			value = roundf(value * 3.0f) / 3.0f + 0.01f; //add tiny epsilon value to get around precision issues truncating to int later
+		} else if (decimalPlaces != 0) {
 			//log::info("overrode truncation of {} from {} places", value, decimalPlaces);
 			return value;
 		}
 		return SetupTriggerPopup::getTruncatedValue(value, std::abs(decimalPlaces));
+	}
+	#ifndef GEODE_IS_IOS
+	float getTruncatedValue(float value, int decimalPlaces) {
+		return getTruncatedValueHook(value, decimalPlaces);
 	}
 	#endif
 
@@ -722,7 +798,7 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 
 		int property = inputNode->getTag();
 		std::string str = inputNode->getString();
-		float value = utils::numFromString<float>(str).unwrapOr(0);
+		float value = getTruncatedValueHook(utils::numFromString<float>(str).unwrapOr(0), inputNode->m_decimalPlaces);
 
 		updateInputValue(property, value);
 		m_triggerValues->setObject(CCFloat::create(value), property);
@@ -1469,6 +1545,7 @@ class $modify(PrecisionHSVWidget, ConfigureHSVWidget) {
 	}
 };
 #include <Geode/modify/HSVLiveOverlay.hpp>
+#include <utility>
 class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 
 	static void onModify(auto& self) {
