@@ -54,10 +54,32 @@ bool precisionRotation = true;
 bool precisionScale = true;
 bool precisionParams = true;
 bool decimalMoveParams = true;
+enum class AreaTriggerSmallStepMode : int {
+	Disabled = -1,
+	DefaultOff = 1,
+	DefaultOn = 2,
+	AlwaysOn = -2,
+	Invalid = -3,
+};
+AreaTriggerSmallStepMode parseAreaTriggerSmallStepToggle(const std::string& s) {
+	if (s == "Disabled") {
+		return AreaTriggerSmallStepMode::Disabled;
+	} else if (s == "Default Off") {
+		return AreaTriggerSmallStepMode::DefaultOff;
+	} else if (s == "Default On") {
+		return AreaTriggerSmallStepMode::DefaultOn;
+	} else if (s == "Always On") {
+		return AreaTriggerSmallStepMode::AlwaysOn;
+	}
+	return AreaTriggerSmallStepMode::Invalid;
+}
+auto areaTriggerSmallStepMode = AreaTriggerSmallStepMode::DefaultOff;
 bool sliderInputs = true;
 bool fixedPlaytestReset = false;
 bool miscEditorFixes = true;
 bool miscUIFixes = false;
+
+bool areaTriggerSmallStepState = false;
 
 $execute {
 	precisionPosition = Mod::get()->getSettingValue<bool>("full-precision-object-position");
@@ -65,6 +87,7 @@ $execute {
 	precisionScale = Mod::get()->getSettingValue<bool>("full-precision-object-scale");
 	precisionParams = Mod::get()->getSettingValue<bool>("full-precision-trigger-parameters");
 	decimalMoveParams = Mod::get()->getSettingValue<bool>("allow-decimal-move-parameters");
+	areaTriggerSmallStepMode = parseAreaTriggerSmallStepToggle(Mod::get()->getSettingValue<std::string>("area-trigger-small-step"));
 	sliderInputs = Mod::get()->getSettingValue<bool>("enable-slider-inputs");
 	fixedPlaytestReset = Mod::get()->getSettingValue<bool>("fixed-playtest-reset");
 	miscEditorFixes = Mod::get()->getSettingValue<bool>("misc-editor-fixes");
@@ -84,6 +107,9 @@ $execute {
 	listenForSettingChanges<bool>("allow-decimal-move-parameters", [](bool value) {
 		decimalMoveParams = value;
 	});
+	listenForSettingChanges<std::string>("area-trigger-small-step", [](std::string value) {
+		areaTriggerSmallStepMode = parseAreaTriggerSmallStepToggle(value);
+	});
 	listenForSettingChanges<bool>("enable-slider-inputs", [](bool value) {
 		sliderInputs = value;
 	});
@@ -96,6 +122,20 @@ $execute {
 	listenForSettingChanges<bool>("misc-ui-fixes", [](bool value) {
 		miscUIFixes = value;
 	});
+
+	switch (areaTriggerSmallStepMode) {
+		case AreaTriggerSmallStepMode::Disabled:
+		case AreaTriggerSmallStepMode::DefaultOff:
+			areaTriggerSmallStepState = false;
+			break;
+		case AreaTriggerSmallStepMode::DefaultOn:
+		case AreaTriggerSmallStepMode::AlwaysOn:
+			areaTriggerSmallStepState = true;
+			break;
+		default:
+			log::warn("Invalid mode for the area trigger small step toggle");
+			break;
+	}
 }
 
 #include <Geode/modify/GameObject.hpp>
@@ -739,10 +779,10 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 			case 223:
 			//case 231:
 			//case 232:
-			case 233:
-			case 234:
-			case 235:
-			case 236:
+			//case 233:
+			//case 234:
+			//case 235:
+			//case 236:
 			case 237:
 			case 238:
 			case 239:
@@ -1576,5 +1616,56 @@ class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 
 		// ReSharper disable once CppDFAMemoryLeak
 		return true;
+	}
+};
+#include <Geode/modify/SetupAreaMoveTriggerPopup.hpp>
+class $modify(PrecisionAreaMoveTriggerPopup, SetupAreaMoveTriggerPopup) {
+	void updateInputNode(int tag, float value) override {
+		if (!precisionParams || !areaTriggerSmallStepState) return SetupAreaMoveTriggerPopup::updateInputNode(tag, value);
+
+		//bypass division by 3, use small step units instead
+		SetupTriggerPopup::updateInputNode(tag, value); // NOLINT(*-parent-virtual-call)
+	}
+	void updateInputValue(int tag, float& value) override {
+		if (!precisionParams || !areaTriggerSmallStepState) return SetupAreaMoveTriggerPopup::updateInputValue(tag, value);
+
+		//bypass multiplication by 3, use small step units instead
+		SetupTriggerPopup::updateInputValue(tag, value); // NOLINT(*-parent-virtual-call)
+	}
+
+	void onSmallStepToggle(CCObject* sender) {
+		auto toggle = static_cast<CCMenuItemToggler*>(sender); // NOLINT(*-pro-type-static-cast-downcast)
+		areaTriggerSmallStepState = !areaTriggerSmallStepState;
+
+		bool oldDisableTextDelegate = m_disableTextDelegate;
+		m_disableTextDelegate = true;
+		updateDefaultTriggerValues();
+		m_disableTextDelegate = oldDisableTextDelegate;
+		//updateDefaultTriggerValues toggles on all pages at once
+		//call goToPage again so that only the current page is visible
+		goToPage(m_page, false);
+	}
+
+	$override
+	void addAreaDefaultControls(int objectID) {
+		SetupAreaMoveTriggerPopup::addAreaDefaultControls(objectID);
+		if (static_cast<int>(areaTriggerSmallStepMode) < 0) return;
+
+		CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+		CCPoint position = {
+			windowSize.width * 0.5f + 140.0f,
+			(windowSize.height * 0.5f) - (m_height * 0.5f) + 20.0f,
+		};
+		auto smallStepToggle = GameToolbox::createToggleButton(
+			"Small\nStep",
+			menu_selector(PrecisionAreaMoveTriggerPopup::onSmallStepToggle),
+			areaTriggerSmallStepState,
+			m_buttonMenu,
+			position,
+			this,
+			m_mainLayer,
+			0.7f, 0.35f, 110.0f, { 8.0f, 0.0f }, "bigFont.fnt", false, 0,
+			this->getPageContainer(0));
+		smallStepToggle->setID("area_trigger_small_step_toggle"_spr);
 	}
 };

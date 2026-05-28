@@ -46,6 +46,13 @@
 			"type": "bool",
 			"default": true
 		},
+		"area-trigger-small-step": {
+			"name": "Area Trigger Small Step",
+			"description": "Adds a checkbox to area trigger menus to use 1/30 units instead of 1/10 units, like in the move trigger; this does not save as part of the level",
+			"type": "string",
+			"default": "Default Off",
+			"one-of": ["Disabled", "Default Off", "Default On", "Always On"]
+		},
 		"enable-slider-inputs": {
 			"name": "Enable Slider Inputs",
 			"description": "Adds text inputs to some trigger properties, like the opacity of color and alpha triggers",
