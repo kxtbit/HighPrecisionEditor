@@ -1,4 +1,4 @@
-# 0.1.3
+# 0.1.30
 - Added initial support for enhanced precision in area triggers, area edit triggers, and enter effect triggers (albeit with a hard limit of 1/3 precision in most movement-related parameters)
 
 # 0.1.21
