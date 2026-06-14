@@ -1,3 +1,9 @@
+# 0.1.31
+- Fixed a bug where having enhanced precision in area triggers would cause negative values to increase by one-third upon editing them
+- Fixed a conflict with the Smart BPM Trigger mod where saving the level would cause a text object to appear at the beginning with a bunch of weird numbers
+- Moved the small step checkbox for area triggers to the left side to avoid overlapping with the multi trigger checkbox
+- Added the small step checkbox to the UI for the edit area triggers and enter effect triggers
+
 # 0.1.30
 - Added initial support for enhanced precision in area triggers, area edit triggers, and enter effect triggers (albeit with a hard limit of 1/3 precision in most movement-related parameters)
 

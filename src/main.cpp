@@ -1,4 +1,5 @@
 // ReSharper disable CppHidingFunction
+// ReSharper disable CppParameterMayBeConst
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
@@ -151,10 +152,10 @@ class $modify(PrecisionGameObject, GameObject) {
 			switch (key) {
 				case 2:
 					if (!precisionPosition) return orig;
-					return fmt::format("{}", self->m_positionX);
+					return fmt::format("{}", self->getPositionX());
 				case 3:
 					if (!precisionPosition) return orig;
-					return fmt::format("{}", self->m_positionY - 90);
+					return fmt::format("{}", self->getPositionY() - 90);
 				case 32:
 					if (!precisionScale) return orig;
 					return fmt::format("{}", std::max(self->m_scaleX, self->m_scaleY));
@@ -817,7 +818,8 @@ class $modify(PrecisionTriggerPopup, SetupTriggerPopup) {
 		if (!precisionParams) return SetupTriggerPopup::getTruncatedValue(value, std::abs(decimalPlaces));
 
 		if (decimalPlaces == -2) {
-			value = roundf(value * 3.0f) / 3.0f + 0.01f; //add tiny epsilon value to get around precision issues truncating to int later
+			value = roundf(value * 3.0f) / 3.0f;
+			value += copysignf(0.01f, value); //add tiny epsilon value to get around precision issues truncating to int later
 		} else if (decimalPlaces != 0) {
 			//log::info("overrode truncation of {} from {} places", value, decimalPlaces);
 			return value;
@@ -1618,6 +1620,38 @@ class $modify(PrecisionHSVOverlay, HSVLiveOverlay) {
 		return true;
 	}
 };
+void onSmallStepToggle(SetupTriggerPopup* self, CCObject* sender) {
+	auto toggle = static_cast<CCMenuItemToggler*>(sender); // NOLINT(*-pro-type-static-cast-downcast)
+	areaTriggerSmallStepState = !areaTriggerSmallStepState;
+
+	bool oldDisableTextDelegate = self->m_disableTextDelegate;
+	self->m_disableTextDelegate = true;
+	self->updateDefaultTriggerValues();
+	self->m_disableTextDelegate = oldDisableTextDelegate;
+	if (!typeinfo_cast<SetupAreaAnimTriggerPopup*>(self) && !typeinfo_cast<SetupEnterEffectPopup*>(self)) {
+		//updateDefaultTriggerValues toggles on all pages at once
+		//call goToPage again so that only the current page is visible
+		self->goToPage(self->m_page, false);
+	}
+}
+void addSmallStepToggle(SetupTriggerPopup* self, cocos2d::SEL_MenuHandler smallStepToggleCallback) {
+	CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
+	CCPoint position = {
+		windowSize.width * 0.5f - 190.0f,
+		(windowSize.height * 0.5f) - (self->m_height * 0.5f) + 44.0f,
+	};
+	auto smallStepToggle = GameToolbox::createToggleButton(
+		"Small\nStep",
+		smallStepToggleCallback,
+		areaTriggerSmallStepState,
+		self->m_buttonMenu,
+		position,
+		self,
+		self->m_mainLayer,
+		0.7f, 0.35f, 110.0f, { 8.0f, 0.0f }, "bigFont.fnt", false, 0,
+		self->getPageContainer(0));
+	smallStepToggle->setID("area_trigger_small_step_toggle"_spr);
+}
 #include <Geode/modify/SetupAreaMoveTriggerPopup.hpp>
 class $modify(PrecisionAreaMoveTriggerPopup, SetupAreaMoveTriggerPopup) {
 	void updateInputNode(int tag, float value) override {
@@ -1633,39 +1667,58 @@ class $modify(PrecisionAreaMoveTriggerPopup, SetupAreaMoveTriggerPopup) {
 		SetupTriggerPopup::updateInputValue(tag, value); // NOLINT(*-parent-virtual-call)
 	}
 
-	void onSmallStepToggle(CCObject* sender) {
-		auto toggle = static_cast<CCMenuItemToggler*>(sender); // NOLINT(*-pro-type-static-cast-downcast)
-		areaTriggerSmallStepState = !areaTriggerSmallStepState;
-
-		bool oldDisableTextDelegate = m_disableTextDelegate;
-		m_disableTextDelegate = true;
-		updateDefaultTriggerValues();
-		m_disableTextDelegate = oldDisableTextDelegate;
-		//updateDefaultTriggerValues toggles on all pages at once
-		//call goToPage again so that only the current page is visible
-		goToPage(m_page, false);
+	void smallStepToggleCallback(CCObject* sender) {
+		return onSmallStepToggle(this, sender);
 	}
-
 	$override
 	void addAreaDefaultControls(int objectID) {
 		SetupAreaMoveTriggerPopup::addAreaDefaultControls(objectID);
 		if (static_cast<int>(areaTriggerSmallStepMode) < 0) return;
 
-		CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
-		CCPoint position = {
-			windowSize.width * 0.5f + 140.0f,
-			(windowSize.height * 0.5f) - (m_height * 0.5f) + 20.0f,
-		};
-		auto smallStepToggle = GameToolbox::createToggleButton(
-			"Small\nStep",
-			menu_selector(PrecisionAreaMoveTriggerPopup::onSmallStepToggle),
-			areaTriggerSmallStepState,
-			m_buttonMenu,
-			position,
-			this,
-			m_mainLayer,
-			0.7f, 0.35f, 110.0f, { 8.0f, 0.0f }, "bigFont.fnt", false, 0,
-			this->getPageContainer(0));
-		smallStepToggle->setID("area_trigger_small_step_toggle"_spr);
+		addSmallStepToggle(this, menu_selector(PrecisionAreaMoveTriggerPopup::smallStepToggleCallback));
+	}
+};
+#include <Geode/modify/SetupAreaAnimTriggerPopup.hpp>
+class $modify(PrecisionAreaAnimTriggerPopup, SetupAreaAnimTriggerPopup) {
+	void smallStepToggleCallback(CCObject* sender) {
+		return onSmallStepToggle(this, sender);
+	}
+	bool init(EnterEffectObject* object, CCArray* objects, int id) {
+		if (!SetupAreaAnimTriggerPopup::init(object, objects, id)) return false;
+		if (static_cast<int>(areaTriggerSmallStepMode) < 0) return true;
+
+		addSmallStepToggle(this, menu_selector(PrecisionAreaAnimTriggerPopup::smallStepToggleCallback));
+		return true;
+	}
+};
+#include <Geode/modify/SetupEnterEffectPopup.hpp>
+class $modify(PrecisionEnterEffectPopup, SetupEnterEffectPopup) {
+	//on Windows the updateInputNode and updateInputValue functions for SetupEnterEffectPopup point to the same address as SetupAreaMoveTriggerPopup
+	//on other platforms they don't, so they need to be hooked again for this class
+#ifndef GEODE_IS_WINDOWS
+	void updateInputNode(int tag, float value) override {
+		if (!precisionParams || !areaTriggerSmallStepState) return SetupEnterEffectPopup::updateInputNode(tag, value);
+
+		//bypass division by 3, use small step units instead
+		SetupTriggerPopup::updateInputNode(tag, value); // NOLINT(*-parent-virtual-call)
+	}
+	void updateInputValue(int tag, float& value) override {
+		if (!precisionParams || !areaTriggerSmallStepState) return SetupEnterEffectPopup::updateInputValue(tag, value);
+
+		//bypass multiplication by 3, use small step units instead
+		SetupTriggerPopup::updateInputValue(tag, value); // NOLINT(*-parent-virtual-call)
+	}
+#endif
+
+	void smallStepToggleCallback(CCObject* sender) {
+		return onSmallStepToggle(this, sender);
+	}
+	bool init(EnterEffectObject* object, CCArray* objects, int id) {
+		if (!SetupEnterEffectPopup::init(object, objects, id)) return false;
+		if (static_cast<int>(areaTriggerSmallStepMode) < 0) return true;
+
+		//i think this is how i need to do this right?
+		addSmallStepToggle(this, menu_selector(PrecisionEnterEffectPopup::smallStepToggleCallback));
+		return true;
 	}
 };
